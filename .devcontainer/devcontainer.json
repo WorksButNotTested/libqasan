@@ -1,0 +1,26 @@
+{
+    "name": "Local",
+    "dockerFile": "Dockerfile",
+    "customizations": {
+      "vscode": {
+        "extensions": [
+            "ms-vscode.cpptools",
+            "ms-azuretools.vscode-docker",
+            "ms-vscode.cpptools-extension-pack",
+            "rust-lang.rust-analyzer",
+            "Codeium.codeium",
+            "vadimcn.vscode-lldb",
+            "ms-vscode.live-server"
+        ]
+      }
+    },
+    "runArgs": [
+      "--cap-add=SYS_PTRACE",
+      "--security-opt",
+      "seccomp=unconfined"
+    ],
+    "mounts": [
+      "source=${localWorkspaceFolder},target=/home/ws,type=bind",
+      "source=${localEnv:HOME},target=/home/share,type=bind"
+    ],
+  }

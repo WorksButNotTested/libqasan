@@ -1,0 +1,157 @@
+[config]
+skip_core_tasks = true
+
+[env]
+TARGET = "x86_64-unknown-linux-gnu"
+PROFILE = "dev"
+ASAN_CC = "x86_64-linux-gnu-gcc"
+ASAN_STRIP = "x86_64-linux-gnu-strip"
+ASAN_CFLAGS = "-m64 -no-pie -Wl,--no-relax -mcmodel=large -fno-stack-protector"
+OUT_DIR = "../target/x86_64-unknown-linux-gnu/debug"
+CHANNEL = "1.84.0"
+
+[env.arm_dev]
+TARGET = "armv7-unknown-linux-gnueabi"
+PROFILE = "dev"
+ASAN_CC = "arm-linux-gnueabi-gcc"
+ASAN_STRIP = "arm-linux-gnueabi-strip"
+ASAN_CFLAGS = "-no-pie -fno-stack-protector -marm"
+OUT_DIR = "../target/armv7-unknown-linux-gnueabi/debug"
+CHANNEL = "1.84.0"
+
+[env.arm_release]
+TARGET = "armv7-unknown-linux-gnueabi"
+PROFILE = "release"
+ASAN_CC = "arm-linux-gnueabi-gcc"
+ASAN_STRIP = "arm-linux-gnueabi-strip"
+ASAN_CFLAGS = "-no-pie -fno-stack-protector -marm"
+OUT_DIR = "../target/armv7-unknown-linux-gnueabi/release"
+CHANNEL = "1.84.0"
+
+[env.aarch64_dev]
+TARGET = "aarch64-unknown-linux-gnu"
+PROFILE = "dev"
+ASAN_CC = "aarch64-linux-gnu-gcc"
+ASAN_STRIP = "aarch64-linux-gnu-strip"
+ASAN_CFLAGS = "-no-pie -fno-stack-protector"
+OUT_DIR = "../target/aarch64-unknown-linux-gnu/debug"
+CHANNEL = "1.84.0"
+
+[env.aarch64_release]
+TARGET = "aarch64-unknown-linux-gnu"
+PROFILE = "release"
+ASAN_CC = "aarch64-linux-gnu-gcc"
+ASAN_STRIP = "aarch64-linux-gnu-strip"
+ASAN_CFLAGS = "-no-pie -fno-stack-protector"
+OUT_DIR = "../target/aarch64-unknown-linux-gnu/release"
+CHANNEL = "1.84.0"
+
+[env.x64_dev]
+TARGET = "x86_64-unknown-linux-gnu"
+PROFILE = "dev"
+ASAN_CC = "x86_64-linux-gnu-gcc"
+ASAN_STRIP = "x86_64-linux-gnu-strip"
+ASAN_CFLAGS = "-m64 -no-pie -Wl,--no-relax -mcmodel=large -fno-stack-protector"
+OUT_DIR = "../target/x86_64-unknown-linux-gnu/debug"
+CHANNEL = "1.84.0"
+
+[env.x64_release]
+TARGET = "x86_64-unknown-linux-gnu"
+PROFILE = "release"
+ASAN_CC = "x86_64-linux-gnu-gcc"
+ASAN_STRIP = "x86_64-linux-gnu-strip"
+ASAN_CFLAGS = "-m64 -no-pie -Wl,--no-relax -mcmodel=large -fno-stack-protector"
+OUT_DIR = "../target/x86_64-unknown-linux-gnu/release"
+CHANNEL = "1.84.0"
+
+[env.i686_dev]
+TARGET = "i686-unknown-linux-gnu"
+PROFILE = "dev"
+ASAN_CC = "i686-linux-gnu-gcc"
+ASAN_STRIP = "i686-linux-gnu-strip"
+ASAN_CFLAGS = "-m32 -no-pie -fno-stack-protector"
+OUT_DIR = "../target/i686-unknown-linux-gnu/debug"
+CHANNEL = "1.84.0"
+
+[env.i686_release]
+TARGET = "i686-unknown-linux-gnu"
+PROFILE = "release"
+ASAN_CC = "i686-linux-gnu-gcc"
+ASAN_STRIP = "i686-linux-gnu-strip"
+ASAN_CFLAGS = "-m32 -no-pie -fno-stack-protector"
+OUT_DIR = "../target/i686-unknown-linux-gnu/release"
+CHANNEL = "1.84.0"
+
+[env.powerpc_dev]
+TARGET = "powerpc-unknown-linux-gnu"
+PROFILE = "dev"
+ASAN_CC = "powerpc-linux-gnu-gcc"
+ASAN_STRIP = "powerpc-linux-gnu-strip"
+ASAN_CFLAGS = "-no-pie -fno-stack-protector"
+OUT_DIR = "../target/powerpc-unknown-linux-gnu/debug"
+CHANNEL = "nightly"
+
+[env.powerpc_release]
+TARGET = "powerpc-unknown-linux-gnu"
+PROFILE = "release"
+ASAN_CC = "powerpc-linux-gnu-gcc"
+ASAN_STRIP = "powerpc-linux-gnu-strip"
+ASAN_CFLAGS = "-no-pie -fno-stack-protector"
+OUT_DIR = "../target/powerpc-unknown-linux-gnu/release"
+CHANNEL = "nightly"
+
+[tasks.default]
+alias = "strip"
+
+[tasks.compile]
+toolchain = "${CHANNEL}"
+command = "cargo"
+args = [
+  "build",
+  "--profile", "${PROFILE}",
+  "--target", "${TARGET}",
+]
+
+[tasks.link]
+dependencies = ["compile"]
+command = "${ASAN_CC}"
+args = [
+    "@@split(ASAN_CFLAGS, )",
+    "-shared",
+    "-nodefaultlibs",
+    "-nostartfiles",
+    "-nostdlib",
+    "-g",
+    "-u",
+    "zasan_allocate",
+    "-u",
+    "zasan_deallocate",    
+    "-o",
+    "${OUT_DIR}/_libzasan.so",
+    "-Wl,--version-script=zasan.map",
+    "-Wl,--gc-sections",
+    "-Wl,--no-undefined",
+    "${OUT_DIR}/libzasan.a",
+    ]
+
+[tasks.strip]
+dependencies = ["link"]
+command = "${ASAN_STRIP}"
+args = [
+  "--strip-unneeded",
+  "-o",
+  "${OUT_DIR}/libzasan.so",
+  "${OUT_DIR}/_libzasan.so",
+]
+
+[tasks.test]
+
+[tasks.test-all]
+
+[tasks.fuzz_guest_shadow_debug]
+
+[tasks.fuzz_guest_shadow_release]
+
+[tasks.fuzz_guest_tracking_debug]
+
+[tasks.fuzz_guest_tracking_release]

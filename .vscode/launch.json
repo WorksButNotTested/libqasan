@@ -1,0 +1,28 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=guest_tracking",
+                    "--package=asan"
+                ],
+                // "filter": {
+                //     "name": "guest_tracking_test_example_1",
+                //     "kind": "test"
+                // }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_LOG": "trace",
+                "RUST_BACKTRACE": "1",
+            }
+        },
+    ]
+}

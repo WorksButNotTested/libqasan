@@ -1,0 +1,16 @@
+//! # tracking
+//! This module is responsible for supporting memory tracking. By logging the
+//! ranges of memory being allocated and freed by the target application, we
+//! can detect double-free defects.
+use {crate::GuestAddr, alloc::fmt::Debug};
+
+#[cfg(feature = "guest")]
+pub mod guest;
+#[cfg(feature = "host")]
+pub mod host;
+
+pub trait Tracking: Sized + Debug {
+    type Error: Debug;
+    fn alloc(&mut self, start: GuestAddr, len: usize) -> Result<(), Self::Error>;
+    fn dealloc(&mut self, start: GuestAddr) -> Result<(), Self::Error>;
+}

@@ -1,0 +1,434 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build - Debug (arm)",
+            "type": "shell",
+            "command": "cargo make -p arm_dev",
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "presentation": {
+                "clear": true,
+                "reveal": "always",
+                "focus": true,
+            }
+        },
+        {
+            "label": "Build - Release (arm)",
+            "type": "shell",
+            "command": "cargo make -p arm_release",
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "presentation": {
+                "clear": true,
+                "reveal": "always",
+                "focus": true,
+            }
+        },
+        {
+            "label": "Build - Debug (aarch64)",
+            "type": "shell",
+            "command": "cargo make -p aarch64_dev",
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "presentation": {
+                "clear": true,
+                "reveal": "always",
+                "focus": true,
+            }
+        },
+        {
+            "label": "Build - Release (aarch64)",
+            "type": "shell",
+            "command": "cargo make -p aarch64_release",
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "presentation": {
+                "clear": true,
+                "reveal": "always",
+                "focus": true,
+            }
+        },
+        {
+            "label": "Build - Debug (x64)",
+            "type": "shell",
+            "command": "cargo make",
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "presentation": {
+                "clear": true,
+                "reveal": "always",
+                "focus": true,
+            }
+        },
+        {
+            "label": "Build - Release (x64)",
+            "type": "shell",
+            "command": "cargo make -p x64_release",
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "presentation": {
+                "clear": true,
+                "reveal": "always",
+                "focus": true,
+            }
+        },
+        {
+            "label": "Build - Debug (i686)",
+            "type": "shell",
+            "command": "cargo make -p i686_dev",
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "presentation": {
+                "clear": true,
+                "reveal": "always",
+                "focus": true,
+            }
+        },
+        {
+            "label": "Build - Release (i686)",
+            "type": "shell",
+            "command": "cargo make -p i686_release",
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "presentation": {
+                "clear": true,
+                "reveal": "always",
+                "focus": true,
+            }
+        },
+        {
+            "label": "Build - Debug (powerpc)",
+            "type": "shell",
+            "command": "cargo make -p powerpc_dev",
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "presentation": {
+                "clear": true,
+                "reveal": "always",
+                "focus": true,
+            }
+        },
+        {
+            "label": "Build - Release (powerpc)",
+            "type": "shell",
+            "command": "cargo make -p powerpc_release",
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "presentation": {
+                "clear": true,
+                "reveal": "always",
+                "focus": true,
+            }
+        },
+        {
+            "label": "Build - Debug All",
+            "type": "shell",
+            "dependsOn": [
+                "Build - Debug (arm)",
+                "Build - Debug (aarch64)",
+                "Build - Debug (i686)",
+                "Build - Debug (x64)",
+                "Build - Debug (powerpc)",
+            ],
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}",
+            },
+            "presentation": {
+                "clear": true,
+                "reveal": "always",
+                "focus": true,
+            },
+        },
+        {
+            "label": "Build - Release All",
+            "type": "shell",
+            "dependsOn": [
+                "Build - Release (arm)",
+                "Build - Release (aarch64)",
+                "Build - Release (i686)",
+                "Build - Release (x64)",
+                "Build - Release (powerpc)",
+            ],
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}",
+            },
+            "presentation": {
+                "clear": true,
+                "reveal": "always",
+                "focus": true,
+            },
+        },
+        {
+            "label": "Build - Test (arm)",
+            "type": "shell",
+            "command": "cargo make -p arm_dev test",
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "RUST_LOG": "debug",
+                    "RUST_BACKTRACE": "1",
+                }
+            },
+            "presentation": {
+                "clear": true,
+                "reveal": "always",
+                "focus": true,
+            },
+        },
+        {
+            "label": "Build - Test (aarch64)",
+            "type": "shell",
+            "command": "cargo make -p aarch64_dev test",
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "RUST_LOG": "debug",
+                    "RUST_BACKTRACE": "1",
+                }
+            },
+            "presentation": {
+                "clear": true,
+                "reveal": "always",
+                "focus": true,
+            },
+        },
+        {
+            "label": "Build - Test (i686)",
+            "type": "shell",
+            "command": "cargo make -p i686_dev test",
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "RUST_LOG": "debug",
+                    "RUST_BACKTRACE": "1",
+                }
+            },
+            "presentation": {
+                "clear": true,
+                "reveal": "always",
+                "focus": true,
+            },
+        },
+        {
+            "label": "Build - Test (x64)",
+            "type": "shell",
+            "command": "cargo make -p x64_dev test",
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "RUST_LOG": "debug",
+                    "RUST_BACKTRACE": "1",
+                }
+            },
+            "presentation": {
+                "clear": true,
+                "reveal": "always",
+                "focus": true,
+            },
+        },
+        {
+            "label": "Build - Test (powerpc)",
+            "type": "shell",
+            "command": "cargo make -p powerpc_dev test",
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "RUST_LOG": "debug",
+                    "RUST_BACKTRACE": "1",
+                }
+            },
+            "presentation": {
+                "clear": true,
+                "reveal": "always",
+                "focus": true,
+            },
+        },
+        {
+            "label": "Build - Test Intel",
+            "type": "shell",
+            "dependsOn": [
+                "Build - Test (x64)",
+                "Build - Test (i686)",
+            ],
+            "group": "build",
+            "presentation": {
+                "clear": true,
+                "reveal": "always",
+                "focus": true,
+            },
+        },
+        {
+            "label": "Build - Test All",
+            "type": "shell",
+            "dependsOn": [
+                "Build - Test (arm)",
+                "Build - Test (aarch64)",
+                "Build - Test (i686)",
+                "Build - Test (x64)",
+                "Build - Test (powerpc)",
+            ],
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "RUST_LOG": "debug",
+                    "RUST_BACKTRACE": "1",
+                }
+            },
+            "presentation": {
+                "clear": true,
+                "reveal": "always",
+                "focus": true,
+            },
+        },
+        {
+            "label": "Fuzz guest_shadow - (Debug)",
+            "type": "shell",
+            "command": "cargo make fuzz_guest_shadow_debug",
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "RUST_LOG": "debug",
+                    "RUST_BACKTRACE": "1",
+                }
+            },
+            "presentation": {
+                "clear": true,
+                "reveal": "always",
+                "focus": true,
+            },
+        },
+        {
+            "label": "Fuzz guest_shadow - (Release)",
+            "type": "shell",
+            "command": "cargo make fuzz_guest_shadow_release",
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}",
+            },
+            "presentation": {
+                "clear": true,
+                "reveal": "always",
+                "focus": true,
+            },
+        },
+        {
+            "label": "Fuzz guest_tracking - (Debug)",
+            "type": "shell",
+            "command": "cargo make fuzz_guest_tracking_debug",
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "RUST_LOG": "debug",
+                    "RUST_BACKTRACE": "1",
+                }
+            },
+            "presentation": {
+                "clear": true,
+                "reveal": "always",
+                "focus": true,
+            },
+        },
+        {
+            "label": "Fuzz guest_tracking - (Release)",
+            "type": "shell",
+            "command": "cargo make fuzz_guest_tracking_release",
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}",
+            },
+            "presentation": {
+                "clear": true,
+                "reveal": "always",
+                "focus": true,
+            },
+        },
+        {
+            "label": "Pretty",
+            "type": "shell",
+            "command": "cargo fmt",
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "presentation": {
+                "clear": true,
+                "reveal": "always",
+                "focus": true,
+            }
+        },
+        {
+            "label": "Fix",
+            "type": "shell",
+            "command": "cargo fix --offline --allow-dirty",
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}",
+            },
+            "presentation": {
+                "clear": true,
+                "reveal": "always",
+                "focus": true,
+            }
+        },
+        {
+            "label": "Clippy",
+            "type": "shell",
+            "command": "cargo clippy --offline",
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}",
+            },
+            "presentation": {
+                "clear": true,
+                "reveal": "always",
+                "focus": true,
+            }
+        },
+        {
+            "label": "Doc",
+            "type": "shell",
+            "command": "cargo doc",
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "presentation": {
+                "clear": true,
+                "reveal": "always",
+                "focus": true,
+            }
+        },
+
+    ]
+}

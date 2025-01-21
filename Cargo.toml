@@ -1,0 +1,14 @@
+[workspace]
+members = [
+    "asan",
+    "qasan",
+    "zasan",
+    "fuzz"
+]
+resolver="2"
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"

@@ -1,0 +1,8 @@
+{
+  global:
+    zasan_allocate;
+    zasan_deallocate;
+
+  local:
+    *;
+};
