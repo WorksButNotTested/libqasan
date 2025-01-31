@@ -1,0 +1,81 @@
+[config]
+skip_core_tasks = true
+
+[env]
+TARGET = "x86_64-unknown-linux-gnu"
+PROFILE = "dev"
+CHANNEL = "1.84.0"
+
+[env.arm_dev]
+TARGET = "armv7-unknown-linux-gnueabi"
+PROFILE = "dev"
+CHANNEL = "1.84.0"
+
+[env.arm_release]
+TARGET = "armv7-unknown-linux-gnueabi"
+PROFILE = "release"
+CHANNEL = "1.84.0"
+
+[env.aarch64_dev]
+TARGET = "aarch64-unknown-linux-gnu"
+PROFILE = "dev"
+CHANNEL = "1.84.0"
+
+[env.aarch64_release]
+TARGET = "aarch64-unknown-linux-gnu"
+PROFILE = "release"
+CHANNEL = "1.84.0"
+
+[env.x64_dev]
+TARGET = "x86_64-unknown-linux-gnu"
+PROFILE = "dev"
+CHANNEL = "1.84.0"
+
+[env.x64_release]
+TARGET = "x86_64-unknown-linux-gnu"
+PROFILE = "release"
+CHANNEL = "1.84.0"
+
+[env.i686_dev]
+TARGET = "i686-unknown-linux-gnu"
+PROFILE = "dev"
+CHANNEL = "1.84.0"
+
+[env.i686_release]
+TARGET = "i686-unknown-linux-gnu"
+PROFILE = "release"
+CHANNEL = "1.84.0"
+
+[env.powerpc_dev]
+TARGET = "powerpc-unknown-linux-gnu"
+PROFILE = "dev"
+CHANNEL = "nightly"
+
+[env.powerpc_release]
+TARGET = "powerpc-unknown-linux-gnu"
+PROFILE = "release"
+CHANNEL = "nightly"
+
+[tasks.default]
+alias = "compile"
+
+[tasks.compile]
+toolchain = "${CHANNEL}"
+command = "cargo"
+args = [
+  "build",
+  "--profile", "${PROFILE}",
+  "--target", "${TARGET}",
+]
+
+[tasks.test]
+
+[tasks.test-all]
+
+[tasks.fuzz_guest_shadow_debug]
+
+[tasks.fuzz_guest_shadow_release]
+
+[tasks.fuzz_guest_tracking_debug]
+
+[tasks.fuzz_guest_tracking_release]

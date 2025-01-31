@@ -168,6 +168,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "gasan"
+version = "0.1.0"
+dependencies = [
+ "asan",
+ "log",
+]
+
+[[package]]
 name = "humantime"
 version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

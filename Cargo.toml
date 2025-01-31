@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "asan",
+    "gasan",
     "qasan",
     "zasan",
     "fuzz"
