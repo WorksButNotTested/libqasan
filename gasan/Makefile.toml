@@ -72,10 +72,14 @@ args = [
 
 [tasks.test-all]
 
-[tasks.fuzz_guest_shadow_debug]
+[tasks.fuzz-guest-shadow-debug]
 
-[tasks.fuzz_guest_shadow_release]
+[tasks.fuzz-guest-shadow-release]
 
-[tasks.fuzz_guest_tracking_debug]
+[tasks.fuzz-guest-tracking-debug]
 
-[tasks.fuzz_guest_tracking_release]
+[tasks.fuzz-guest-tracking-release]
+
+[tasks.fuzz-default-frontend-debug]
+
+[tasks.fuzz-default-frontend-release]

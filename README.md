@@ -41,8 +41,8 @@ but the following is a short list of common build commands:
 ```bash
 $ cargo make -p x64_release # Build for x64 in release mode
 $ cargo doc # Build documentation (recommended).
-$ cargo make fuzz_guest_shadow_release # Fuzz the guest shadow implementation
-$ cargo make fuzz_guest_tracking_release # Fuzz the guest tracking implementation
+$ cargo make fuzz-guest-shadow-release # Fuzz the guest shadow implementation
+$ cargo make fuzz-guest-tracking-release # Fuzz the guest tracking implementation
 ```
 
 ## Testing

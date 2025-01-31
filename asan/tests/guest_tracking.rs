@@ -14,10 +14,10 @@ mod tests {
     };
 
     static INIT_ONCE: Lazy<Mutex<()>> = Lazy::new(|| {
-        Mutex::new({
+        {
             env_logger::init();
-            ()
-        })
+        };
+        Mutex::new(())
     });
 
     fn get_tracking() -> GuestTracking {

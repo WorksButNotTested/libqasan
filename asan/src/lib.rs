@@ -7,14 +7,14 @@
 //! environments. The following initial variants are proposed:
 //!
 //! - `qasan` - Intended as a drop in replacement for the original libqasan,
-//! this will have dependency on `libc` and will interact with QEMU using the
-//! despoke syscall interface to perform memory tracking and shadowing.
+//!   this will have dependency on `libc` and will interact with QEMU using the
+//!   bespoke syscall interface to perform memory tracking and shadowing.
 //! - `gasan` - This is similar to `qasan`, but rather than having QEMU perform
-//! the management of the shadow memory and memory tracking, this work will be
-//! carried out purely in the guest (and hence should be more performant).
+//!   the management of the shadow memory and memory tracking, this work will be
+//!   carried out purely in the guest (and hence should be more performant).
 //! - `zasan` - This variant is intended to have no dependencies on libc, nor
-//! any other libraries. It is intended to be used in bare-metal targets or
-//! targets which have statically linked `libc`.
+//!   any other libraries. It is intended to be used in bare-metal targets or
+//!   targets which have statically linked `libc`.
 //!
 //! The componentized nature of the design is intended to permit the user to
 //! adapt `asan` to their needs with minimal modification by selecting and
@@ -25,9 +25,9 @@
 //! - `guest` - Enable support for shadow memory and tracking in the guest
 //! - `host` - Enable support for shadow memory and tracking in the host
 //! - `libc` - Enable use of `LibcMmap` to support creation of mappings using
-//! `libc`
+//!   `libc`
 //! - `linux` - Enable use of `LinuxMmap` to support creation of mappings and
-//! host interaction using `rustix`.
+//!   host interaction using `rustix`.
 //! - `std` - Disable the magic used to support `no_std` environments
 //!
 #![cfg_attr(not(any(feature = "std", test)), no_std)]

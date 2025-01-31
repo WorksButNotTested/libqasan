@@ -18,10 +18,10 @@ mod tests {
     const ALIGN: usize = GS::ALLOC_ALIGN_SIZE;
 
     static INIT_ONCE: Lazy<Mutex<()>> = Lazy::new(|| {
-        Mutex::new({
+        {
             env_logger::init();
-            ()
-        })
+        };
+        Mutex::new(())
     });
 
     fn get_shadow() -> GuestShadow<LibcMmap, DefaultShadowLayout> {

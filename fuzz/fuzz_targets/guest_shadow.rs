@@ -4,24 +4,21 @@ use {
     asan::{
         mmap::libc::LibcMmap,
         shadow::{
-            guest::{GuestShadow, GuestShadowError},
+            guest::{DefaultShadowLayout, GuestShadow, GuestShadowError},
             PoisonType, Shadow,
         },
         GuestAddr,
     },
-    lazy_static::lazy_static,
     libfuzzer_sys::fuzz_target,
     log::info,
-    std::sync::{Mutex, MutexGuard},
+    std::sync::{LazyLock, Mutex, MutexGuard},
 };
-type GS = GuestShadow<LibcMmap>;
+type GS = GuestShadow<LibcMmap, DefaultShadowLayout>;
 
-lazy_static! {
-    static ref INIT_ONCE: Mutex<GS> = Mutex::new({
-        env_logger::init();
-        GuestShadow::<LibcMmap>::new().unwrap()
-    });
-}
+static INIT_ONCE: LazyLock<Mutex<GS>> = LazyLock::new(|| {
+    env_logger::init();
+    Mutex::new(GuestShadow::<LibcMmap, DefaultShadowLayout>::new().unwrap())
+});
 
 fn get_shadow() -> MutexGuard<'static, GS> {
     INIT_ONCE.lock().unwrap()

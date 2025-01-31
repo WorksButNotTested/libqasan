@@ -25,8 +25,8 @@ impl AllocatorBackend for MimallocBackend {
 
     fn alloc(&mut self, len: usize, align: usize) -> Result<crate::GuestAddr, Self::Error> {
         debug!("alloc - size: {}, align: {}", len, align);
-        let layout = Layout::from_size_align(len, align)
-            .map_err(|e| MimallocBackendError::InvalidLayout(e))?;
+        let layout =
+            Layout::from_size_align(len, align).map_err(MimallocBackendError::InvalidLayout)?;
         Ok(unsafe { self.mimalloc.alloc(layout) } as GuestAddr)
     }
 
@@ -40,10 +40,16 @@ impl AllocatorBackend for MimallocBackend {
             "dealloc - addr: 0x{:x}, size: 0x{:x}, align: 0x{:x}",
             addr, len, align
         );
-        let layout = Layout::from_size_align(len, align)
-            .map_err(|e| MimallocBackendError::InvalidLayout(e))?;
+        let layout =
+            Layout::from_size_align(len, align).map_err(MimallocBackendError::InvalidLayout)?;
         unsafe { self.mimalloc.dealloc(addr as *mut u8, layout) }
         Ok(())
+    }
+}
+
+impl Default for MimallocBackend {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

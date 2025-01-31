@@ -310,9 +310,9 @@
             },
         },
         {
-            "label": "Fuzz guest_shadow - (Debug)",
+            "label": "Fuzz guest-shadow - (Debug)",
             "type": "shell",
-            "command": "cargo make fuzz_guest_shadow_debug",
+            "command": "cargo make fuzz-guest-shadow-debug",
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}",
@@ -328,9 +328,9 @@
             },
         },
         {
-            "label": "Fuzz guest_shadow - (Release)",
+            "label": "Fuzz guest-shadow - (Release)",
             "type": "shell",
-            "command": "cargo make fuzz_guest_shadow_release",
+            "command": "cargo make fuzz-guest-shadow-release",
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}",
@@ -342,9 +342,9 @@
             },
         },
         {
-            "label": "Fuzz guest_tracking - (Debug)",
+            "label": "Fuzz guest-tracking - (Debug)",
             "type": "shell",
-            "command": "cargo make fuzz_guest_tracking_debug",
+            "command": "cargo make fuzz-guest-tracking-debug",
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}",
@@ -360,9 +360,41 @@
             },
         },
         {
-            "label": "Fuzz guest_tracking - (Release)",
+            "label": "Fuzz guest-tracking - (Release)",
             "type": "shell",
-            "command": "cargo make fuzz_guest_tracking_release",
+            "command": "cargo make fuzz-guest-tracking-release",
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}",
+            },
+            "presentation": {
+                "clear": true,
+                "reveal": "always",
+                "focus": true,
+            },
+        },
+        {
+            "label": "Fuzz default-frontend - (Debug)",
+            "type": "shell",
+            "command": "cargo make fuzz-default-frontend-debug",
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "RUST_LOG": "info",
+                    "RUST_BACKTRACE": "1",
+                }
+            },
+            "presentation": {
+                "clear": true,
+                "reveal": "always",
+                "focus": true,
+            },
+        },
+        {
+            "label": "Fuzz default-frontend - (Release)",
+            "type": "shell",
+            "command": "cargo make fuzz-default-frontend-release",
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}",

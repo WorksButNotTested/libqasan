@@ -2,16 +2,16 @@
 //! This module provides implementations for tracking memory by means of a
 //! shadow map. QEMU currently supports two modes of operation for this:
 //! - `guest` - This newer mode (made possible by more recent versions of QEMU
-//! supporting the `MAP_NORESERVE` flag to mmap much more efficiently) creates
-//! the shadow maps in the guest memory space and augments the TCG code emit
-//! instructions to test these maps when performing load/store operations.
+//!   supporting the `MAP_NORESERVE` flag to mmap much more efficiently) creates
+//!   the shadow maps in the guest memory space and augments the TCG code emit
+//!   instructions to test these maps when performing load/store operations.
 //! - `host` - This is the original mode whereby the shadow maps are created by
-//! QEMU itself (and hence live in the host's memory space). In this mode, the
-//! TCG code is augmented with calls back into the host in order to validate the
-//! memory being accessed during load/store operations. Note that this requires
-//! the guest memory addresses being used by the TCG code to be converted into
-//! host addresses to be tested against the shadow maps (incurring a performance
-//! overhead) as well as placing constraints on register usage.
+//!   QEMU itself (and hence live in the host's memory space). In this mode, the
+//!   TCG code is augmented with calls back into the host in order to validate the
+//!   memory being accessed during load/store operations. Note that this requires
+//!   the guest memory addresses being used by the TCG code to be converted into
+//!   host addresses to be tested against the shadow maps (incurring a performance
+//!   overhead) as well as placing constraints on register usage.
 use core::fmt::Debug;
 
 use crate::GuestAddr;

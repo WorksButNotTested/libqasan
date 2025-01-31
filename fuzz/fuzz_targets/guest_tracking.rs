@@ -8,18 +8,15 @@ use {
         },
         GuestAddr,
     },
-    lazy_static::lazy_static,
     libfuzzer_sys::fuzz_target,
     log::{debug, info},
-    std::sync::{Mutex, MutexGuard},
+    std::sync::{LazyLock, Mutex, MutexGuard},
 };
 
-lazy_static! {
-    static ref INIT_ONCE: Mutex<GuestTracking> = Mutex::new({
-        env_logger::init();
-        GuestTracking::new().unwrap()
-    });
-}
+static INIT_ONCE: LazyLock<Mutex<GuestTracking>> = LazyLock::new(|| {
+    env_logger::init();
+    Mutex::new(GuestTracking::new().unwrap())
+});
 
 fn get_tracking() -> MutexGuard<'static, GuestTracking> {
     INIT_ONCE.lock().unwrap()

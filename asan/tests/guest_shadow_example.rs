@@ -1,5 +1,7 @@
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "guest")]
+    #[cfg(target_pointer_width = "64")]
     use {
         asan::{
             mmap::libc::LibcMmap,
@@ -12,15 +14,21 @@ mod tests {
         std::sync::Mutex,
     };
 
+    #[cfg(feature = "guest")]
+    #[cfg(target_pointer_width = "64")]
     type GS = GuestShadow<LibcMmap, DefaultShadowLayout>;
 
+    #[cfg(feature = "guest")]
+    #[cfg(target_pointer_width = "64")]
     static INIT_ONCE: Lazy<Mutex<()>> = Lazy::new(|| {
-        Mutex::new({
+        {
             env_logger::init();
-            ()
-        })
+        };
+        Mutex::new(())
     });
 
+    #[cfg(feature = "guest")]
+    #[cfg(target_pointer_width = "64")]
     fn get_shadow() -> GuestShadow<LibcMmap, DefaultShadowLayout> {
         drop(INIT_ONCE.lock().unwrap());
         GS::new().unwrap()

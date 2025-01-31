@@ -9,7 +9,7 @@
                 "args": [
                     "test",
                     "--no-run",
-                    "--test=guest_tracking",
+                    "--test=default_frontend",
                     "--package=asan"
                 ],
                 // "filter": {

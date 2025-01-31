@@ -12,7 +12,7 @@ alias = "test"
 
 [tasks.test-all]
 
-[tasks.fuzz_guest_shadow_debug]
+[tasks.fuzz-debug]
 toolchain = "nightly"
 command = "cargo"
 args = [
@@ -20,36 +20,10 @@ args = [
   "run",
   "--sanitizer", "none",
   "--target", "${TARGET}",
-  "guest_shadow",
+  "${HARNESS}",
 ]
 
-[tasks.fuzz_guest_shadow_release]
-toolchain = "nightly"
-command = "cargo"
-args = [
-  "fuzz",
-  "run",
-  "--sanitizer", "none",
-  "--target", "${TARGET}",
-  "--release",
-  "guest_shadow",
-  "--",
-  "-jobs=${JOBS}",
-]
-
-
-[tasks.fuzz_guest_tracking_debug]
-toolchain = "nightly"
-command = "cargo"
-args = [
-  "fuzz",
-  "run",
-  "--sanitizer", "none",
-  "--target", "${TARGET}",
-  "guest_tracking",
-]
-
-[tasks.fuzz_guest_tracking_release]
+[tasks.fuzz-release]
 toolchain = "nightly"
 command = "cargo"
 args = [
@@ -58,8 +32,32 @@ args = [
   "--sanitizer", "none",
   "--target", "${TARGET}",
   "--release",
-  "guest_tracking",
+  "${HARNESS}",
   "--",
   "-jobs=${JOBS}",
 ]
 
+[tasks.fuzz-guest-shadow-debug]
+extend = "fuzz-debug"
+env = { HARNESS = "guest_shadow" }
+
+[tasks.fuzz-guest-shadow-release]
+extend = "fuzz-release"
+env = { HARNESS = "guest_shadow" }
+
+
+[tasks.fuzz-guest-tracking-debug]
+extend = "fuzz-debug"
+env = { HARNESS = "guest_tracking" }
+
+[tasks.fuzz-guest-tracking-release]
+extend = "fuzz-release"
+env = { HARNESS = "guest_tracking" }
+
+[tasks.fuzz-default-frontend-debug]
+extend = "fuzz-debug"
+env = { HARNESS = "default_frontend" }
+
+[tasks.fuzz-default-frontend-release]
+extend = "fuzz-release"
+env = { HARNESS = "default_frontend" }

@@ -24,21 +24,23 @@ use {
     thiserror::Error,
 };
 
-struct Allocation {
-    addr: GuestAddr,
-    len: usize,
-    align: usize,
+#[readonly::make]
+pub struct Allocation {
+    pub addr: GuestAddr,
+    pub len: usize,
+    pub align: usize,
 }
 
+#[readonly::make]
 pub struct DefaultFrontend<B: AllocatorBackend, S: Shadow, T: Tracking> {
-    backend: B,
-    shadow: S,
-    tracking: T,
-    red_zone_size: usize,
-    allocations: BTreeMap<GuestAddr, Allocation>,
-    quarantine: VecDeque<Allocation>,
-    quarantine_size: usize,
-    quaratine_used: usize,
+    pub backend: B,
+    pub shadow: S,
+    pub tracking: T,
+    pub red_zone_size: usize,
+    pub allocations: BTreeMap<GuestAddr, Allocation>,
+    pub quarantine: VecDeque<Allocation>,
+    pub quarantine_size: usize,
+    pub quaratine_used: usize,
 }
 
 impl<B: AllocatorBackend, S: Shadow, T: Tracking> Allocator for DefaultFrontend<B, S, T> {
@@ -79,7 +81,7 @@ impl<B: AllocatorBackend, S: Shadow, T: Tracking> Allocator for DefaultFrontend<
             .alloc(data, len)
             .map_err(|e| DefaultFrontendError::TrackingError(e))?;
         self.shadow
-            .poison(rz, self.red_zone_size, PoisonType::AsanHeapLeftRz)
+            .poison(orig, data - orig, PoisonType::AsanHeapLeftRz)
             .map_err(|e| DefaultFrontendError::ShadowError(e))?;
         let poison_len = Self::align_up(len) - len + self.red_zone_size;
         self.shadow
@@ -155,6 +157,7 @@ impl<B: AllocatorBackend, S: Shadow, T: Tracking> DefaultFrontend<B, S, T> {
             self.backend
                 .dealloc(alloc.addr, alloc.len, alloc.align)
                 .map_err(|e| DefaultFrontendError::AllocatorError(e))?;
+            self.quaratine_used -= alloc.len;
         }
         Ok(())
     }

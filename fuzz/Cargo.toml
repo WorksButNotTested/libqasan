@@ -10,7 +10,6 @@ cargo-fuzz = true
 [dependencies]
 arbitrary = { version = "1.4.1" }
 env_logger = { version = "0.11.6" }
-lazy_static = { version = "1.5.0" }
 libfuzzer-sys = { version = "0.4" }
 log = { version = "0.4.22" }
 
@@ -27,6 +26,13 @@ bench = false
 [[bin]]
 name = "guest_tracking"
 path = "fuzz_targets/guest_tracking.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "default_frontend"
+path = "fuzz_targets/default_frontend.rs"
 test = false
 doc = false
 bench = false
