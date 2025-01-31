@@ -50,4 +50,3 @@ pub mod tracking;
 extern crate alloc;
 
 pub type GuestAddr = usize;
-

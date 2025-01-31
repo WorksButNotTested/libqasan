@@ -8,6 +8,9 @@ use core::fmt::Debug;
 
 use crate::{shadow::PoisonType, GuestAddr};
 
+#[cfg(feature = "libc")]
+pub mod libc;
+
 #[cfg(feature = "linux")]
 pub mod linux;
 

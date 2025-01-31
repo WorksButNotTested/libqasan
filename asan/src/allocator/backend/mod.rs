@@ -13,6 +13,9 @@ use {crate::GuestAddr, alloc::fmt::Debug, core::alloc::GlobalAlloc, log::debug, 
 #[cfg(feature = "dlmalloc")]
 pub mod dlmalloc;
 
+#[cfg(feature = "mimalloc")]
+pub mod mimalloc;
+
 pub trait AllocatorBackend: Sized + Debug {
     type Error: Debug;
     fn alloc(&mut self, len: usize, align: usize) -> Result<GuestAddr, Self::Error>;

@@ -7,12 +7,7 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [features]
-default = [ "guest", "host", "linux", "libc" ]
-libc = [ "asan/libc" ]
-std = [ "asan/std" ]
-host = [ "asan/host" ]
-guest = [ "asan/guest" ]
-linux = [ "asan/linux" ]
 
 [dependencies]
-asan = { path = "../asan" }
+asan = { path = "../asan", default-features = false, features = ["mimalloc", "host", "libc", "std", "tracking"] }
+log = { version = "0.4.22", default-features = false }

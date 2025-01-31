@@ -44,7 +44,7 @@ pub extern "C" fn zasan_allocate(size: usize, align: usize) -> *mut u8 {
 }
 
 #[no_mangle]
-pub extern "C" fn zasan_deallocate(addr: *mut u8) {
+pub extern "C" fn zasan_deallocate(addr: *mut u8) -> bool {
     let mut allocator = ALLOCATOR.lock();
-    allocator.dealloc(addr as GuestAddr).unwrap();
+    allocator.dealloc(addr as GuestAddr).is_ok()
 }
