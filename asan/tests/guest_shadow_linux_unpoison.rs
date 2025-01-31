@@ -4,7 +4,7 @@ mod tests {
         asan::{
             mmap::linux::LinuxMmap,
             shadow::{
-                guest::{GuestShadow, GuestShadowError},
+                guest::{DefaultShadowLayout, GuestShadow, GuestShadowError},
                 Shadow,
             },
             GuestAddr,
@@ -13,7 +13,7 @@ mod tests {
         std::sync::Mutex,
     };
 
-    type GS = GuestShadow<LinuxMmap>;
+    type GS = GuestShadow<LinuxMmap, DefaultShadowLayout>;
 
     const ALIGN: usize = GS::ALLOC_ALIGN_SIZE;
 
@@ -24,7 +24,7 @@ mod tests {
         })
     });
 
-    fn get_shadow() -> GuestShadow<LinuxMmap> {
+    fn get_shadow() -> GuestShadow<LinuxMmap, DefaultShadowLayout> {
         drop(INIT_ONCE.lock().unwrap());
         GS::new().unwrap()
     }

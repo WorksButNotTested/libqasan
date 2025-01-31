@@ -8,7 +8,7 @@ mod tests {
                 frontend::{default::DefaultFrontend, Allocator},
             },
             mmap::linux::LinuxMmap,
-            shadow::guest::GuestShadow,
+            shadow::guest::{DefaultShadowLayout, GuestShadow},
             tracking::guest::GuestTracking,
         },
         spin::Lazy,
@@ -22,12 +22,16 @@ mod tests {
         })
     });
 
-    type DA = DefaultFrontend<DlmallocBackend<LinuxMmap>, GuestShadow<LinuxMmap>, GuestTracking>;
+    type DA = DefaultFrontend<
+        DlmallocBackend<LinuxMmap>,
+        GuestShadow<LinuxMmap, DefaultShadowLayout>,
+        GuestTracking,
+    >;
 
     fn allocator() -> DA {
         drop(INIT_ONCE.lock().unwrap());
         let backend = DlmallocBackend::<LinuxMmap>::new();
-        let shadow = GuestShadow::<LinuxMmap>::new().unwrap();
+        let shadow = GuestShadow::<LinuxMmap, DefaultShadowLayout>::new().unwrap();
         let tracking = GuestTracking::new().unwrap();
         DA::new(
             backend,

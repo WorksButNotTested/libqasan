@@ -4,7 +4,7 @@ mod tests {
         asan::{
             mmap::libc::LibcMmap,
             shadow::{
-                guest::{GuestShadow, GuestShadowError},
+                guest::{DefaultShadowLayout, GuestShadow, GuestShadowError},
                 PoisonType, Shadow,
             },
             GuestAddr,
@@ -13,7 +13,7 @@ mod tests {
         std::sync::Mutex,
     };
 
-    type GS = GuestShadow<LibcMmap>;
+    type GS = GuestShadow<LibcMmap, DefaultShadowLayout>;
 
     const ALIGN: usize = GS::ALLOC_ALIGN_SIZE;
 
@@ -24,7 +24,7 @@ mod tests {
         })
     });
 
-    fn get_shadow() -> GuestShadow<LibcMmap> {
+    fn get_shadow() -> GuestShadow<LibcMmap, DefaultShadowLayout> {
         drop(INIT_ONCE.lock().unwrap());
         GS::new().unwrap()
     }

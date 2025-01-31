@@ -9,21 +9,23 @@ use {
             frontend::{default::DefaultFrontend, Allocator},
         },
         mmap::linux::LinuxMmap,
-        shadow::guest::GuestShadow,
+        shadow::guest::{DefaultShadowLayout, GuestShadow},
         tracking::guest::GuestTracking,
         GuestAddr,
     },
-    spin::Lazy,
-    spin::Mutex,
+    spin::{Lazy, Mutex},
 };
 
-pub type ZasanAllocator =
-    DefaultFrontend<DlmallocBackend<LinuxMmap>, GuestShadow<LinuxMmap>, GuestTracking>;
+pub type ZasanAllocator = DefaultFrontend<
+    DlmallocBackend<LinuxMmap>,
+    GuestShadow<LinuxMmap, DefaultShadowLayout>,
+    GuestTracking,
+>;
 
 static ALLOCATOR: Lazy<Mutex<ZasanAllocator>> = Lazy::new(|| {
     Mutex::new({
         let backend = DlmallocBackend::<LinuxMmap>::new();
-        let shadow = GuestShadow::<LinuxMmap>::new().unwrap();
+        let shadow = GuestShadow::<LinuxMmap, DefaultShadowLayout>::new().unwrap();
         let tracking = GuestTracking::new().unwrap();
         ZasanAllocator::new(
             backend,

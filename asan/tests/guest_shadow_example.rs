@@ -3,13 +3,16 @@ mod tests {
     use {
         asan::{
             mmap::libc::LibcMmap,
-            shadow::{guest::GuestShadow, PoisonType, Shadow},
+            shadow::{
+                guest::{DefaultShadowLayout, GuestShadow},
+                PoisonType, Shadow,
+            },
         },
         spin::Lazy,
         std::sync::Mutex,
     };
 
-    type GS = GuestShadow<LibcMmap>;
+    type GS = GuestShadow<LibcMmap, DefaultShadowLayout>;
 
     static INIT_ONCE: Lazy<Mutex<()>> = Lazy::new(|| {
         Mutex::new({
@@ -18,7 +21,7 @@ mod tests {
         })
     });
 
-    fn get_shadow() -> GuestShadow<LibcMmap> {
+    fn get_shadow() -> GuestShadow<LibcMmap, DefaultShadowLayout> {
         drop(INIT_ONCE.lock().unwrap());
         GS::new().unwrap()
     }

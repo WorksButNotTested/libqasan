@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+    use asan::shadow::guest::DefaultShadowLayout;
     #[cfg(feature = "guest")]
     use asan::{mmap::Mmap, shadow::guest::GuestShadow, GuestAddr};
 
@@ -29,7 +30,7 @@ mod tests {
     #[derive(Debug)]
     struct DummyMmapError;
 
-    type GS = GuestShadow<DummyMmap>;
+    type GS = GuestShadow<DummyMmap, DefaultShadowLayout>;
 
     #[test]
     #[cfg(feature = "guest")]
