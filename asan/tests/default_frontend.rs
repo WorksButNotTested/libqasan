@@ -58,14 +58,10 @@ mod tests {
         let mut frontend = frontend();
         let len = 16;
         let buf = frontend.alloc(len, 8).unwrap();
-        for i in buf - DF::DEFAULT_REDZONE_SIZE..buf {
-            assert!(frontend.shadow.is_poison(i, 1).unwrap());
-        }
-        for i in buf..buf + len {
-            assert!(!frontend.shadow.is_poison(i, 1).unwrap());
-        }
-        for i in buf + len..buf + len + DF::DEFAULT_REDZONE_SIZE {
-            assert!(frontend.shadow.is_poison(i, 1).unwrap());
+        for i in buf - DF::DEFAULT_REDZONE_SIZE..buf + len + DF::DEFAULT_REDZONE_SIZE {
+            let expected = i < buf || i >= buf + len;
+            let poisoned = frontend.shadow().is_poison(i, 1).unwrap();
+            assert_eq!(expected, poisoned);
         }
         frontend.dealloc(buf).unwrap();
     }

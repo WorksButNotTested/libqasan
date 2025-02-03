@@ -156,6 +156,10 @@ args = [
 
 [tasks.fuzz-guest-tracking-release]
 
-[tasks.fuzz-default-frontend-debug]
+[tasks.fuzz-default-frontend-mock-debug]
 
-[tasks.fuzz-default-frontend-release]
+[tasks.fuzz-default-frontend-mock-release]
+
+[tasks.fuzz-default-frontend-dlmalloc-debug]
+
+[tasks.fuzz-default-frontend-dlmalloc-release]

@@ -54,10 +54,18 @@ env = { HARNESS = "guest_tracking" }
 extend = "fuzz-release"
 env = { HARNESS = "guest_tracking" }
 
-[tasks.fuzz-default-frontend-debug]
+[tasks.fuzz-default-frontend-mock-debug]
 extend = "fuzz-debug"
-env = { HARNESS = "default_frontend" }
+env = { HARNESS = "default_frontend_mock" }
 
-[tasks.fuzz-default-frontend-release]
+[tasks.fuzz-default-frontend-mock-release]
 extend = "fuzz-release"
-env = { HARNESS = "default_frontend" }
+env = { HARNESS = "default_frontend_mock" }
+
+[tasks.fuzz-default-frontend-dlmalloc-debug]
+extend = "fuzz-debug"
+env = { HARNESS = "default_frontend_dlmalloc" }
+
+[tasks.fuzz-default-frontend-dlmalloc-release]
+extend = "fuzz-release"
+env = { HARNESS = "default_frontend_dlmalloc" }

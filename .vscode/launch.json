@@ -9,7 +9,7 @@
                 "args": [
                     "test",
                     "--no-run",
-                    "--test=default_frontend",
+                    "--test=default_frontend_mock",
                     "--package=asan"
                 ],
                 // "filter": {

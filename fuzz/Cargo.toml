@@ -12,6 +12,8 @@ arbitrary = { version = "1.4.1" }
 env_logger = { version = "0.11.6" }
 libfuzzer-sys = { version = "0.4" }
 log = { version = "0.4.22" }
+mockall = { version = "0.13.1" }
+thiserror = { version = "2.0.11" }
 
 [dependencies.asan]
 path = "../asan"
@@ -31,8 +33,15 @@ doc = false
 bench = false
 
 [[bin]]
-name = "default_frontend"
-path = "fuzz_targets/default_frontend.rs"
+name = "default_frontend_mock"
+path = "fuzz_targets/default_frontend_mock.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "default_frontend_dlmalloc"
+path = "fuzz_targets/default_frontend_dlmalloc.rs"
 test = false
 doc = false
 bench = false

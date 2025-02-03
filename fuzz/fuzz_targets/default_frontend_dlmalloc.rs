@@ -63,21 +63,22 @@ fuzz_target!(|data: Vec<GuestAddr>| {
     let align_idx = data[1] & ALIGNMENTS_MASK;
     let align = ALIGNMENTS[align_idx];
 
-    info!("data: {:x?}, len: 0x{:x}, align: 0x{:x}", &data[0..2], len, align);
+    info!(
+        "data: {:x?}, len: 0x{:x}, align: 0x{:x}",
+        &data[0..2],
+        len,
+        align
+    );
 
     if len == 0 {
         return;
     }
 
     let buf = frontend.alloc(len, align).unwrap();
-    for i in buf - DF::DEFAULT_REDZONE_SIZE..buf {
-        assert!(frontend.shadow.is_poison(i, 1).unwrap());
-    }
-    for i in buf..buf + len {
-        assert!(!frontend.shadow.is_poison(i, 1).unwrap());
-    }
-    for i in buf + len..buf + len + DF::DEFAULT_REDZONE_SIZE {
-        assert!(frontend.shadow.is_poison(i, 1).unwrap());
+    for i in buf - DF::DEFAULT_REDZONE_SIZE..buf + len + DF::DEFAULT_REDZONE_SIZE {
+        let expected = i < buf || i >= buf + len;
+        let poisoned = frontend.shadow().is_poison(i, 1).unwrap();
+        assert_eq!(expected, poisoned);
     }
     frontend.dealloc(buf).unwrap();
 });

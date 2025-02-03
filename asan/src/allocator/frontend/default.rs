@@ -24,23 +24,21 @@ use {
     thiserror::Error,
 };
 
-#[readonly::make]
-pub struct Allocation {
-    pub addr: GuestAddr,
-    pub len: usize,
-    pub align: usize,
+struct Allocation {
+    addr: GuestAddr,
+    len: usize,
+    align: usize,
 }
 
-#[readonly::make]
 pub struct DefaultFrontend<B: AllocatorBackend, S: Shadow, T: Tracking> {
-    pub backend: B,
-    pub shadow: S,
-    pub tracking: T,
-    pub red_zone_size: usize,
-    pub allocations: BTreeMap<GuestAddr, Allocation>,
-    pub quarantine: VecDeque<Allocation>,
-    pub quarantine_size: usize,
-    pub quaratine_used: usize,
+    backend: B,
+    shadow: S,
+    tracking: T,
+    red_zone_size: usize,
+    allocations: BTreeMap<GuestAddr, Allocation>,
+    quarantine: VecDeque<Allocation>,
+    quarantine_size: usize,
+    quaratine_used: usize,
 }
 
 impl<B: AllocatorBackend, S: Shadow, T: Tracking> Allocator for DefaultFrontend<B, S, T> {
@@ -52,12 +50,19 @@ impl<B: AllocatorBackend, S: Shadow, T: Tracking> Allocator for DefaultFrontend<
             Err(DefaultFrontendError::InvalidAlignment(align))?;
         }
         let size = len + align;
-        let allocated_size = self.red_zone_size + Self::align_up(size);
+        let allocated_size = (self.red_zone_size * 2) + Self::align_up(size);
         assert!(allocated_size % Self::ALLOC_ALIGN_SIZE == 0);
         let orig = self
             .backend
             .alloc(allocated_size, Self::ALLOC_ALIGN_SIZE)
             .map_err(|e| DefaultFrontendError::AllocatorError(e))?;
+
+        debug!(
+            "alloc - buffer: 0x{:x}, len: 0x{:x}, align: 0x{:x}",
+            orig,
+            allocated_size,
+            Self::ALLOC_ALIGN_SIZE
+        );
 
         let rz = orig + self.red_zone_size;
         let data = if align == 0 {
@@ -82,6 +87,9 @@ impl<B: AllocatorBackend, S: Shadow, T: Tracking> Allocator for DefaultFrontend<
             .map_err(|e| DefaultFrontendError::TrackingError(e))?;
         self.shadow
             .poison(orig, data - orig, PoisonType::AsanHeapLeftRz)
+            .map_err(|e| DefaultFrontendError::ShadowError(e))?;
+        self.shadow
+            .unpoison(data, len)
             .map_err(|e| DefaultFrontendError::ShadowError(e))?;
         let poison_len = Self::align_up(len) - len + self.red_zone_size;
         self.shadow
@@ -166,6 +174,14 @@ impl<B: AllocatorBackend, S: Shadow, T: Tracking> DefaultFrontend<B, S, T> {
         assert!(size <= GuestAddr::MAX - (Self::ALLOC_ALIGN_SIZE - 1));
         let val = size + (Self::ALLOC_ALIGN_SIZE - 1);
         val & !(Self::ALLOC_ALIGN_SIZE - 1)
+    }
+
+    pub fn shadow(&self) -> &S {
+        &self.shadow
+    }
+
+    pub fn backend_mut(&mut self) -> &mut B {
+        &mut self.backend
     }
 }
 
