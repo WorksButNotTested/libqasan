@@ -61,6 +61,12 @@ impl<L: LookupType> Symbols for DlSymSymbols<L> {
     }
 }
 
+impl Default for DlSymSymbols<LookupTypeDefault> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<L: LookupType> DlSymSymbols<L> {
     const UNKNOWN_ERROR: &str = "Unknown error";
 

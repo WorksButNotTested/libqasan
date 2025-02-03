@@ -1,6 +1,5 @@
 #[cfg(test)]
 mod tests {
-    use asan::symbols::dlsym::{DlSymSymbols, LookupTypeNext};
     #[cfg(feature = "guest")]
     #[cfg(target_pointer_width = "64")]
     use {
@@ -10,6 +9,7 @@ mod tests {
                 guest::{DefaultShadowLayout, GuestShadow},
                 PoisonType, Shadow,
             },
+            symbols::dlsym::{DlSymSymbols, LookupTypeNext},
         },
         spin::Lazy,
         std::sync::Mutex,

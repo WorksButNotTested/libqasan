@@ -4,7 +4,11 @@
 //! operating systems which provide a `libc` library. But is no suited to
 //! applications where the library has been statically linked.
 use {
-    crate::{mmap::Mmap, symbols::Symbols, GuestAddr},
+    crate::{
+        mmap::{Mmap, MmapProt},
+        symbols::Symbols,
+        GuestAddr,
+    },
     core::{
         cmp::Ordering,
         ffi::{c_int, c_void},
@@ -12,7 +16,7 @@ use {
         ptr::null_mut,
         slice::{from_raw_parts, from_raw_parts_mut},
     },
-    libc::{__errno_location, off_t, size_t},
+    libc::{__errno_location, off_t, size_t, PROT_EXEC, PROT_NONE, PROT_READ, PROT_WRITE},
     log::trace,
     spin::Mutex,
     thiserror::Error,
@@ -20,9 +24,11 @@ use {
 
 type FnMmap = unsafe extern "C" fn(*mut c_void, size_t, c_int, c_int, c_int, off_t) -> *mut c_void;
 type FnMunmap = unsafe extern "C" fn(*mut c_void, size_t) -> c_int;
+type FnMprotect = unsafe extern "C" fn(*mut c_void, size_t, c_int) -> c_int;
 
 static MMAP_FUNC: Mutex<Option<FnMmap>> = Mutex::new(None);
 static MUNMAP_FUNC: Mutex<Option<FnMunmap>> = Mutex::new(None);
+static MPROTECT_FUNC: Mutex<Option<FnMprotect>> = Mutex::new(None);
 
 #[derive(Debug)]
 pub struct LibcMmap<S: Symbols> {
@@ -58,6 +64,10 @@ impl<S: Symbols> LibcMmap<S> {
 
     fn get_munmap() -> Result<FnMunmap, S::Error> {
         Ok(*MUNMAP_FUNC.lock().get_or_insert(S::lookup("munmap")?))
+    }
+
+    fn get_mprotect() -> Result<FnMprotect, S::Error> {
+        Ok(*MPROTECT_FUNC.lock().get_or_insert(S::lookup("mprotect")?))
     }
 }
 
@@ -119,12 +129,46 @@ impl<S: Symbols> Mmap for LibcMmap<S> {
         }
     }
 
+    fn protect(addr: GuestAddr, len: usize, prot: MmapProt) -> Result<(), Self::Error> {
+        trace!(
+            "protect - addr: {:#x}, len: {:#x}, prot: {:#x}",
+            addr,
+            len,
+            prot
+        );
+        let mprotect =
+            Self::get_mprotect().map_err(|e| LibcMapError::<S>::FailedToFindMmapFunctions(e))?;
+        let ret = unsafe { mprotect(addr as *mut c_void, len, c_int::from(&prot)) };
+        if ret != 0 {
+            let errno = unsafe { *__errno_location() };
+            Err(LibcMapError::FailedToMprotect(addr, len, prot, errno))?;
+        }
+
+        Ok(())
+    }
+
     fn as_slice(&self) -> &[u8] {
         unsafe { from_raw_parts(self.addr as *const u8, self.len) }
     }
 
     fn as_mut_slice(&mut self) -> &mut [u8] {
         unsafe { from_raw_parts_mut(self.addr as *mut u8, self.len) }
+    }
+}
+
+impl From<&MmapProt> for c_int {
+    fn from(prot: &MmapProt) -> Self {
+        let mut ret = PROT_NONE;
+        if prot.contains(MmapProt::READ) {
+            ret |= PROT_READ;
+        }
+        if prot.contains(MmapProt::WRITE) {
+            ret |= PROT_WRITE;
+        }
+        if prot.contains(MmapProt::EXEC) {
+            ret |= PROT_EXEC;
+        }
+        ret
     }
 }
 
@@ -151,4 +195,6 @@ pub enum LibcMapError<S: Symbols> {
     FailedToMapAt(GuestAddr, usize, c_int),
     #[error("Failed to find mmap functions")]
     FailedToFindMmapFunctions(S::Error),
+    #[error("Failed to mprotect - addr: {0}, len: {1}, prot: {2:?}, errno: {3}")]
+    FailedToMprotect(GuestAddr, usize, MmapProt, c_int),
 }

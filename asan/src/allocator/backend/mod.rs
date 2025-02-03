@@ -13,7 +13,7 @@ use {crate::GuestAddr, alloc::fmt::Debug, core::alloc::GlobalAlloc, log::debug, 
 #[cfg(feature = "dlmalloc")]
 pub mod dlmalloc;
 
-#[cfg(feature = "mimalloc")]
+#[cfg(all(feature = "mimalloc", not(target_arch = "powerpc"), feature = "std"))]
 pub mod mimalloc;
 
 pub trait AllocatorBackend: Sized + Debug {

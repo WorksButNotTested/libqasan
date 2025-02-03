@@ -4,7 +4,10 @@
 //! introduce a dependency on the `libc` library and is therefore suited for
 //! targets where `libc` is statically linked.
 use {
-    crate::{mmap::Mmap, GuestAddr},
+    crate::{
+        mmap::{Mmap, MmapProt},
+        GuestAddr,
+    },
     core::{
         ffi::c_void,
         ptr::null_mut,
@@ -13,7 +16,7 @@ use {
     log::trace,
     rustix::{
         io::Errno,
-        mm::{mmap_anonymous, munmap, MapFlags, ProtFlags},
+        mm::{mmap_anonymous, mprotect, munmap, MapFlags, MprotectFlags, ProtFlags},
     },
     thiserror::Error,
 };
@@ -65,6 +68,35 @@ impl Mmap for LinuxMmap {
     fn as_mut_slice(&mut self) -> &mut [u8] {
         unsafe { from_raw_parts_mut(self.addr as *mut u8, self.len) }
     }
+
+    fn protect(addr: GuestAddr, len: usize, prot: MmapProt) -> Result<(), Self::Error> {
+        trace!(
+            "protect - addr: {:#x}, len: {:#x}, prot: {:#x}",
+            addr,
+            len,
+            prot
+        );
+        unsafe {
+            mprotect(addr as *mut c_void, len, MprotectFlags::from(&prot))
+                .map_err(|errno| LinuxMapError::FailedToMprotect(addr, len, prot, errno))
+        }
+    }
+}
+
+impl From<&MmapProt> for MprotectFlags {
+    fn from(prot: &MmapProt) -> Self {
+        let mut ret = MprotectFlags::empty();
+        if prot.contains(MmapProt::READ) {
+            ret |= MprotectFlags::READ;
+        }
+        if prot.contains(MmapProt::WRITE) {
+            ret |= MprotectFlags::WRITE;
+        }
+        if prot.contains(MmapProt::EXEC) {
+            ret |= MprotectFlags::EXEC;
+        }
+        ret
+    }
 }
 
 impl Drop for LinuxMmap {
@@ -82,4 +114,6 @@ pub enum LinuxMapError {
     FailedToMap(usize, Errno),
     #[error("Failed to map: {0}, len: {1}, errno: {2}")]
     FailedToMapAt(GuestAddr, usize, Errno),
+    #[error("Failed to mprotect - addr: {0}, len: {1}, prot: {2:?}, errno: {3}")]
+    FailedToMprotect(GuestAddr, usize, MmapProt, Errno),
 }

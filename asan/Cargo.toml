@@ -18,6 +18,7 @@ std = []
 tracking = []
 
 [dependencies]
+bitflags = { version = "2.8.0", default-features = false }
 dlmalloc = { version = "0.2.7", default-features = false, optional = true }
 log = { version = "0.4.22", default-features = false }
 libc = { version = "0.2.169", default-features = false, optional = true }

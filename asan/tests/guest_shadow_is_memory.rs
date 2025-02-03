@@ -18,6 +18,14 @@ mod tests {
             unimplemented!()
         }
 
+        fn protect(
+            _addr: asan::GuestAddr,
+            _len: usize,
+            _prot: asan::mmap::MmapProt,
+        ) -> Result<(), Self::Error> {
+            unimplemented!()
+        }
+
         fn as_slice(&self) -> &[u8] {
             unimplemented!()
         }

@@ -8,14 +8,11 @@
             "cargo": {
                 "args": [
                     "test",
+                    "--target=i686-unknown-linux-gnu",
                     "--no-run",
-                    "--test=default_frontend_mock",
+                    "--test=patch_raw",
                     "--package=asan"
                 ],
-                // "filter": {
-                //     "name": "guest_tracking_test_example_1",
-                //     "kind": "test"
-                // }
             },
             "args": [],
             "cwd": "${workspaceFolder}",

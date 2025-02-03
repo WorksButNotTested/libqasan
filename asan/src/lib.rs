@@ -43,6 +43,8 @@ pub mod mmap;
 #[cfg(not(feature = "std"))]
 mod nostd;
 
+pub mod patch;
+
 pub mod shadow;
 
 pub mod symbols;

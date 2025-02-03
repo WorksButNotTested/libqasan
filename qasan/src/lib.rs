@@ -1,9 +1,6 @@
 use {
     asan::{
-        allocator::{
-            backend::mimalloc::MimallocBackend,
-            frontend::{default::DefaultFrontend, Allocator},
-        },
+        allocator::frontend::{default::DefaultFrontend, Allocator},
         host::libc::LibcHost,
         shadow::host::HostShadow,
         tracking::host::HostTracking,
@@ -15,12 +12,19 @@ use {
     },
 };
 
+#[cfg(not(target_arch = "powerpc"))]
+type BE = asan::allocator::backend::mimalloc::MimallocBackend;
+
+#[cfg(target_arch = "powerpc")]
+type BE =
+    asan::allocator::backend::dlmalloc::DlmallocBackend<asan::mmap::libc::LibcMmap<asan::symbols::dlsym::DlSymSymbols<asan::symbols::dlsym::LookupTypeNext>>>;
+
 pub type ZasanAllocator =
-    DefaultFrontend<MimallocBackend, HostShadow<LibcHost>, HostTracking<LibcHost>>;
+    DefaultFrontend<BE, HostShadow<LibcHost>, HostTracking<LibcHost>>;
 
 static ALLOCATOR: LazyLock<Mutex<ZasanAllocator>> = LazyLock::new(|| {
     Mutex::new({
-        let backend = MimallocBackend::new();
+        let backend = BE::new();
         let shadow = HostShadow::<LibcHost>::new().unwrap();
         let tracking = HostTracking::<LibcHost>::new().unwrap();
         ZasanAllocator::new(
