@@ -7,17 +7,20 @@ use {
             guest::{DefaultShadowLayout, GuestShadow, GuestShadowError},
             PoisonType, Shadow,
         },
+        symbols::dlsym::{DlSymSymbols, LookupTypeNext},
         GuestAddr,
     },
     libfuzzer_sys::fuzz_target,
     log::info,
     std::sync::{LazyLock, Mutex, MutexGuard},
 };
-type GS = GuestShadow<LibcMmap, DefaultShadowLayout>;
+type GS = GuestShadow<LibcMmap<DlSymSymbols<LookupTypeNext>>, DefaultShadowLayout>;
 
 static INIT_ONCE: LazyLock<Mutex<GS>> = LazyLock::new(|| {
     env_logger::init();
-    Mutex::new(GuestShadow::<LibcMmap, DefaultShadowLayout>::new().unwrap())
+    Mutex::new(
+        GuestShadow::<LibcMmap<DlSymSymbols<LookupTypeNext>>, DefaultShadowLayout>::new().unwrap(),
+    )
 });
 
 fn get_shadow() -> MutexGuard<'static, GS> {

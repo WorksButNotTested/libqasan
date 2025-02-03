@@ -7,13 +7,14 @@ mod tests {
                 guest::{DefaultShadowLayout, GuestShadow, GuestShadowError},
                 Shadow,
             },
+            symbols::dlsym::{DlSymSymbols, LookupTypeNext},
             GuestAddr,
         },
         spin::Lazy,
         std::sync::Mutex,
     };
 
-    type GS = GuestShadow<LibcMmap, DefaultShadowLayout>;
+    type GS = GuestShadow<LibcMmap<DlSymSymbols<LookupTypeNext>>, DefaultShadowLayout>;
 
     const ALIGN: usize = GS::ALLOC_ALIGN_SIZE;
 
@@ -24,7 +25,7 @@ mod tests {
         Mutex::new(())
     });
 
-    fn get_shadow() -> GuestShadow<LibcMmap, DefaultShadowLayout> {
+    fn get_shadow() -> GS {
         drop(INIT_ONCE.lock().unwrap());
         GS::new().unwrap()
     }

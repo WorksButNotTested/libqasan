@@ -45,6 +45,8 @@ mod nostd;
 
 pub mod shadow;
 
+pub mod symbols;
+
 pub mod tracking;
 
 extern crate alloc;

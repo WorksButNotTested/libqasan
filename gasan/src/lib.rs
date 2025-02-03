@@ -6,6 +6,7 @@ use {
         },
         mmap::libc::LibcMmap,
         shadow::guest::{DefaultShadowLayout, GuestShadow},
+        symbols::dlsym::{DlSymSymbols, LookupTypeNext},
         tracking::guest::GuestTracking,
         GuestAddr,
     },
@@ -15,13 +16,18 @@ use {
     },
 };
 
-pub type ZasanAllocator =
-    DefaultFrontend<MimallocBackend, GuestShadow<LibcMmap, DefaultShadowLayout>, GuestTracking>;
+pub type ZasanAllocator = DefaultFrontend<
+    MimallocBackend,
+    GuestShadow<LibcMmap<DlSymSymbols<LookupTypeNext>>, DefaultShadowLayout>,
+    GuestTracking,
+>;
 
 static ALLOCATOR: LazyLock<Mutex<ZasanAllocator>> = LazyLock::new(|| {
     Mutex::new({
         let backend = MimallocBackend::new();
-        let shadow = GuestShadow::<LibcMmap, DefaultShadowLayout>::new().unwrap();
+        let shadow =
+            GuestShadow::<LibcMmap<DlSymSymbols<LookupTypeNext>>, DefaultShadowLayout>::new()
+                .unwrap();
         let tracking = GuestTracking::new().unwrap();
         ZasanAllocator::new(
             backend,

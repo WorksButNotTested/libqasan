@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+    use asan::symbols::dlsym::{DlSymSymbols, LookupTypeNext};
     #[cfg(feature = "guest")]
     #[cfg(target_pointer_width = "64")]
     use {
@@ -16,7 +17,7 @@ mod tests {
 
     #[cfg(feature = "guest")]
     #[cfg(target_pointer_width = "64")]
-    type GS = GuestShadow<LibcMmap, DefaultShadowLayout>;
+    type GS = GuestShadow<LibcMmap<DlSymSymbols<LookupTypeNext>>, DefaultShadowLayout>;
 
     #[cfg(feature = "guest")]
     #[cfg(target_pointer_width = "64")]
@@ -29,7 +30,7 @@ mod tests {
 
     #[cfg(feature = "guest")]
     #[cfg(target_pointer_width = "64")]
-    fn get_shadow() -> GuestShadow<LibcMmap, DefaultShadowLayout> {
+    fn get_shadow() -> GS {
         drop(INIT_ONCE.lock().unwrap());
         GS::new().unwrap()
     }

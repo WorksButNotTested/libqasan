@@ -4,92 +4,70 @@
 //! operating systems which provide a `libc` library. But is no suited to
 //! applications where the library has been statically linked.
 use {
-    crate::{mmap::Mmap, GuestAddr},
-    alloc::ffi::{CString, NulError},
+    crate::{mmap::Mmap, symbols::Symbols, GuestAddr},
     core::{
-        ffi::{c_int, c_void, CStr},
-        mem::transmute,
+        cmp::Ordering,
+        ffi::{c_int, c_void},
+        marker::PhantomData,
         ptr::null_mut,
         slice::{from_raw_parts, from_raw_parts_mut},
     },
-    libc::{__errno_location, dlerror, dlsym, off_t, size_t, RTLD_NEXT},
+    libc::{__errno_location, off_t, size_t},
     log::trace,
-    spin::Lazy,
+    spin::Mutex,
     thiserror::Error,
 };
 
 type FnMmap = unsafe extern "C" fn(*mut c_void, size_t, c_int, c_int, c_int, off_t) -> *mut c_void;
 type FnMunmap = unsafe extern "C" fn(*mut c_void, size_t) -> c_int;
-const UNKNOWN_ERROR: &str = "Unknown error";
 
-#[derive(Clone)]
-struct LibcMmapFuncs {
-    mmap: FnMmap,
-    munmap: FnMunmap,
-}
+static MMAP_FUNC: Mutex<Option<FnMmap>> = Mutex::new(None);
+static MUNMAP_FUNC: Mutex<Option<FnMunmap>> = Mutex::new(None);
 
-impl LibcMmapFuncs {
-    fn new() -> Result<LibcMmapFuncs, LibcMmapFuncsError> {
-        let mmap_cstring = CString::new("mmap")?;
-        let mmap_cstr: &CStr = mmap_cstring.as_c_str();
-        let p_mmap = unsafe { dlsym(RTLD_NEXT, mmap_cstr.as_ptr()) };
-        if p_mmap.is_null() {
-            Err(LibcMmapFuncsError::FailedToFindFunction(
-                "mmap",
-                Self::get_error(),
-            ))?;
-        }
-        let mmap = unsafe { transmute::<*mut c_void, FnMmap>(p_mmap) };
-
-        let munmap_cstring = CString::new("munmap")?;
-        let munmap_cstr: &CStr = munmap_cstring.as_c_str();
-        let p_munmap = unsafe { dlsym(RTLD_NEXT, munmap_cstr.as_ptr()) };
-        if p_munmap.is_null() {
-            Err(LibcMmapFuncsError::FailedToFindFunction(
-                "munmap",
-                Self::get_error(),
-            ))?;
-        }
-        let munmap = unsafe { transmute::<*mut c_void, FnMunmap>(p_munmap) };
-
-        Ok(LibcMmapFuncs { mmap, munmap })
-    }
-
-    fn get_error() -> &'static str {
-        let error = unsafe { dlerror() };
-        if error.is_null() {
-            UNKNOWN_ERROR
-        } else {
-            unsafe { CStr::from_ptr(error).to_str().unwrap_or(UNKNOWN_ERROR) }
-        }
-    }
-}
-
-#[derive(Error, Debug, PartialEq, Clone)]
-pub enum LibcMmapFuncsError {
-    #[error("Bad function name: {0:?}")]
-    BadFunctionName(#[from] NulError),
-    #[error("Failed to find function: {0}, error: {1}")]
-    FailedToFindFunction(&'static str, &'static str),
-}
-
-static MMAP_FUNCS: Lazy<Result<LibcMmapFuncs, LibcMmapFuncsError>> = Lazy::new(LibcMmapFuncs::new);
-
-#[derive(Ord, PartialOrd, PartialEq, Eq, Debug)]
-pub struct LibcMmap {
+#[derive(Debug)]
+pub struct LibcMmap<S: Symbols> {
     addr: GuestAddr,
     len: usize,
+    _phantom: PhantomData<S>,
 }
 
-impl Mmap for LibcMmap {
-    type Error = LibcMapError;
+impl<S: Symbols> Ord for LibcMmap<S> {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.addr.cmp(&other.addr)
+    }
+}
 
-    fn map(len: usize) -> Result<LibcMmap, LibcMapError> {
-        let funcs = MMAP_FUNCS
-            .as_ref()
-            .map_err(|e| LibcMapError::FailedToFindMmapFunctions(e.clone()))?;
+impl<S: Symbols> PartialOrd for LibcMmap<S> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl<S: Symbols> PartialEq for LibcMmap<S> {
+    fn eq(&self, other: &Self) -> bool {
+        self.addr == other.addr
+    }
+}
+
+impl<S: Symbols> Eq for LibcMmap<S> {}
+
+impl<S: Symbols> LibcMmap<S> {
+    fn get_mmap() -> Result<FnMmap, S::Error> {
+        Ok(*MMAP_FUNC.lock().get_or_insert(S::lookup("mmap")?))
+    }
+
+    fn get_munmap() -> Result<FnMunmap, S::Error> {
+        Ok(*MUNMAP_FUNC.lock().get_or_insert(S::lookup("munmap")?))
+    }
+}
+
+impl<S: Symbols> Mmap for LibcMmap<S> {
+    type Error = LibcMapError<S>;
+
+    fn map(len: usize) -> Result<LibcMmap<S>, LibcMapError<S>> {
+        let mmap = Self::get_mmap().map_err(|e| LibcMapError::<S>::FailedToFindMmapFunctions(e))?;
         let map = unsafe {
-            (funcs.mmap)(
+            mmap(
                 null_mut(),
                 len,
                 libc::PROT_READ | libc::PROT_WRITE,
@@ -104,16 +82,18 @@ impl Mmap for LibcMmap {
         } else {
             let addr = map as GuestAddr;
             trace!("Mapped: 0x{:x}-0x{:x}", addr, addr + len);
-            Ok(LibcMmap { addr, len })
+            Ok(LibcMmap {
+                addr,
+                len,
+                _phantom: PhantomData,
+            })
         }
     }
 
-    fn map_at(addr: GuestAddr, len: usize) -> Result<LibcMmap, LibcMapError> {
-        let funcs = MMAP_FUNCS
-            .as_ref()
-            .map_err(|e| LibcMapError::FailedToFindMmapFunctions(e.clone()))?;
+    fn map_at(addr: GuestAddr, len: usize) -> Result<LibcMmap<S>, LibcMapError<S>> {
+        let mmap = Self::get_mmap().map_err(|e| LibcMapError::<S>::FailedToFindMmapFunctions(e))?;
         let map = unsafe {
-            (funcs.mmap)(
+            mmap(
                 addr as *mut c_void,
                 len,
                 libc::PROT_READ | libc::PROT_WRITE,
@@ -131,7 +111,11 @@ impl Mmap for LibcMmap {
             let errno = unsafe { *__errno_location() };
             Err(LibcMapError::FailedToMapAt(addr, len, errno))
         } else {
-            Ok(LibcMmap { addr, len })
+            Ok(LibcMmap {
+                addr,
+                len,
+                _phantom: PhantomData,
+            })
         }
     }
 
@@ -144,11 +128,13 @@ impl Mmap for LibcMmap {
     }
 }
 
-impl Drop for LibcMmap {
+impl<S: Symbols> Drop for LibcMmap<S> {
     fn drop(&mut self) {
         unsafe {
-            let funcs = MMAP_FUNCS.as_ref().unwrap();
-            if (funcs.munmap)(self.addr as *mut c_void, self.len) < 0 {
+            let munmap = Self::get_munmap()
+                .map_err(|e| LibcMapError::<S>::FailedToFindMmapFunctions(e))
+                .unwrap();
+            if munmap(self.addr as *mut c_void, self.len) < 0 {
                 let errno = *__errno_location();
                 panic!("Errno: {}", errno);
             }
@@ -158,11 +144,11 @@ impl Drop for LibcMmap {
 }
 
 #[derive(Error, Debug, PartialEq)]
-pub enum LibcMapError {
+pub enum LibcMapError<S: Symbols> {
     #[error("Failed to map - len: {0}, errno: {1}")]
     FailedToMap(usize, c_int),
     #[error("Failed to map: {0}, len: {1}, errno: {2}")]
     FailedToMapAt(GuestAddr, usize, c_int),
     #[error("Failed to find mmap functions")]
-    FailedToFindMmapFunctions(LibcMmapFuncsError),
+    FailedToFindMmapFunctions(S::Error),
 }
