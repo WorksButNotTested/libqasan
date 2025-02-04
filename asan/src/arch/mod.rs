@@ -1,3 +1,5 @@
+use log::error;
+
 #[cfg(target_arch = "aarch64")]
 mod aarch64;
 
@@ -7,5 +9,8 @@ mod arm;
 #[cfg(target_arch = "powerpc")]
 mod powerpc;
 
-#[cfg(target_arch = "x86")]
-mod x86;
+#[no_mangle]
+extern "C" fn _Unwind_Resume() {
+    error!("_Unwind_Resume");
+    loop {}
+}

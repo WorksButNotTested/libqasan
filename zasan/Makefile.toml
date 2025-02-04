@@ -100,39 +100,60 @@ ASAN_CFLAGS = "-no-pie -fno-stack-protector"
 OUT_DIR = "../target/powerpc-unknown-linux-gnu/release"
 CHANNEL = "nightly"
 
+
 [tasks.default]
 alias = "strip"
 
 [tasks.compile]
 toolchain = "${CHANNEL}"
 command = "cargo"
-args = [
-  "build",
-  "--profile", "${PROFILE}",
-  "--target", "${TARGET}",
-]
+args = ["build", "--profile", "${PROFILE}", "--target", "${TARGET}"]
 
 [tasks.link]
 dependencies = ["compile"]
 command = "${ASAN_CC}"
 args = [
-    "@@split(ASAN_CFLAGS, )",
-    "-shared",
-    "-nodefaultlibs",
-    "-nostartfiles",
-    "-nostdlib",
-    "-g",
-    "-u",
-    "zasan_allocate",
-    "-u",
-    "zasan_deallocate",
-    "-o",
-    "${OUT_DIR}/_libzasan.so",
-    "-Wl,--version-script=zasan.map",
-    "-Wl,--gc-sections",
-    "-Wl,--no-undefined",
-    "${OUT_DIR}/libzasan.a",
-    ]
+  "@@split(ASAN_CFLAGS, )",
+  "-shared",
+  "-nodefaultlibs",
+  "-nostartfiles",
+  "-nostdlib",
+  "-g",
+  "-u",
+  "zasan_allocate",
+  "-u",
+  "zasan_deallocate",
+  "-u",
+  "aligned_alloc",
+  "-u",
+  "calloc",
+  "-u",
+  "malloc",
+  "-u",
+  "malloc_usable_size",
+  "-u",
+  "memalign",
+  "-u",
+  "posix_memalign",
+  "-u",
+  "pvalloc",
+  "-u",
+  "read",
+  "-u",
+  "realloc",
+  "-u",
+  "reallocarray",
+  "-u",
+  "valloc",
+  "-u",
+  "write",
+  "-o",
+  "${OUT_DIR}/_libzasan.so",
+  "-Wl,--version-script=zasan.map",
+  "-Wl,--gc-sections",
+  "-Wl,--no-undefined",
+  "${OUT_DIR}/libzasan.a",
+]
 
 [tasks.strip]
 dependencies = ["link"]

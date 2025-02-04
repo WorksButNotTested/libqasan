@@ -17,9 +17,11 @@ mod tests {
         Mutex::new(())
     });
 
+    const PAGE_SIZE: usize = 4096;
+
     fn allocator() -> DlmallocBackend<LinuxMmap> {
         drop(INIT_ONCE.lock().unwrap());
-        DlmallocBackend::<LinuxMmap>::new()
+        DlmallocBackend::<LinuxMmap>::new(PAGE_SIZE)
     }
 
     #[test]

@@ -4,10 +4,20 @@ version = "0.1.0"
 edition = "2021"
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["staticlib"]
 
 [features]
 
 [dependencies]
-asan = { path = "../asan", default-features = false, features = ["dlmalloc", "mimalloc", "host", "libc", "std", "tracking"] }
+asan = { path = "../asan", default-features = false, features = [
+  "dlmalloc",
+  "hooks",
+  "host",
+  "libc",
+  "linux",
+  "tracking",
+] }
+dummy_libc = { path = "../dummy_libc", default-features = false }
+ctor = { version = "0.2.9", default-features = false }
+libc = { version = "0.2.169", default-features = false }
 log = { version = "0.4.22", default-features = false }

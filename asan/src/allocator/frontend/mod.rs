@@ -6,8 +6,9 @@ use {crate::GuestAddr, alloc::fmt::Debug};
 
 pub mod default;
 
-pub trait Allocator: Sized {
+pub trait AllocatorFrontend: Sized + Send {
     type Error: Debug;
     fn alloc(&mut self, len: usize, align: usize) -> Result<GuestAddr, Self::Error>;
     fn dealloc(&mut self, addr: GuestAddr) -> Result<(), Self::Error>;
+    fn get_size(&self, addr: GuestAddr) -> Result<usize, Self::Error>;
 }

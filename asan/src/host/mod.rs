@@ -31,7 +31,7 @@ enum HostAction {
     SwapState,
 }
 
-pub trait Host: Debug {
+pub trait Host: Debug + Send {
     type Error: Debug;
     fn load(start: GuestAddr, len: usize) -> Result<(), Self::Error>;
     fn store(start: GuestAddr, len: usize) -> Result<(), Self::Error>;

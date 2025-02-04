@@ -13,23 +13,20 @@ use {crate::GuestAddr, alloc::fmt::Debug, core::alloc::GlobalAlloc, log::debug, 
 #[cfg(feature = "dlmalloc")]
 pub mod dlmalloc;
 
-#[cfg(all(feature = "mimalloc", not(target_arch = "powerpc"), feature = "std"))]
-pub mod mimalloc;
-
-pub trait AllocatorBackend: Sized + Debug {
+pub trait AllocatorBackend: Sized + Debug + Send {
     type Error: Debug;
     fn alloc(&mut self, len: usize, align: usize) -> Result<GuestAddr, Self::Error>;
     fn dealloc(&mut self, addr: GuestAddr, len: usize, align: usize) -> Result<(), Self::Error>;
 }
 
 pub struct GlobalAllocator<A: AllocatorBackend> {
-    allocator: Mutex<A>,
+    backend: Mutex<A>,
 }
 
 unsafe impl<A: AllocatorBackend> GlobalAlloc for GlobalAllocator<A> {
     unsafe fn alloc(&self, layout: core::alloc::Layout) -> *mut u8 {
         debug!("alloc - size: {}, align: {}", layout.size(), layout.align());
-        let mut allocator = self.allocator.lock();
+        let mut allocator = self.backend.lock();
         let addr = allocator
             .alloc(layout.size(), layout.align())
             .unwrap_or_default();
@@ -43,7 +40,7 @@ unsafe impl<A: AllocatorBackend> GlobalAlloc for GlobalAllocator<A> {
             layout.size(),
             layout.align()
         );
-        let mut allocator = self.allocator.lock();
+        let mut allocator = self.backend.lock();
         allocator
             .dealloc(ptr as GuestAddr, layout.size(), layout.align())
             .unwrap();
@@ -53,7 +50,7 @@ unsafe impl<A: AllocatorBackend> GlobalAlloc for GlobalAllocator<A> {
 impl<A: AllocatorBackend> GlobalAllocator<A> {
     pub const fn new(allocator: A) -> GlobalAllocator<A> {
         GlobalAllocator {
-            allocator: Mutex::new(allocator),
+            backend: Mutex::new(allocator),
         }
     }
 }

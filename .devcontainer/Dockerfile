@@ -46,3 +46,5 @@ RUN cargo binstall cargo-make
 
 # cargo-fuzz
 RUN cargo binstall -y cargo-fuzz
+
+RUN cargo binstall -y taplo-cli

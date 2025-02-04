@@ -4,7 +4,7 @@ use {
     asan::{
         allocator::{
             backend::AllocatorBackend,
-            frontend::{default::DefaultFrontend, Allocator},
+            frontend::{default::DefaultFrontend, AllocatorFrontend},
         },
         mmap::{linux::LinuxMmap, Mmap},
         shadow::{

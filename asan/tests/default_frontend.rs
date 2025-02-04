@@ -5,7 +5,7 @@ mod tests {
         asan::{
             allocator::{
                 backend::dlmalloc::DlmallocBackend,
-                frontend::{default::DefaultFrontend, Allocator},
+                frontend::{default::DefaultFrontend, AllocatorFrontend},
             },
             mmap::linux::LinuxMmap,
             shadow::{
@@ -17,10 +17,12 @@ mod tests {
         spin::{Lazy, Mutex, MutexGuard},
     };
 
+    const PAGE_SIZE: usize = 4096;
+
     static INIT_ONCE: Lazy<Mutex<DF>> = Lazy::new(|| {
         Mutex::new({
             env_logger::init();
-            let backend = DlmallocBackend::<LinuxMmap>::new();
+            let backend = DlmallocBackend::<LinuxMmap>::new(PAGE_SIZE);
             let shadow = GuestShadow::<LinuxMmap, DefaultShadowLayout>::new().unwrap();
             let tracking = GuestTracking::new().unwrap();
             DF::new(

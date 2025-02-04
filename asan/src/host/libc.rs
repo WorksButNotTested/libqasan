@@ -5,21 +5,32 @@ use {
     crate::{
         host::{Host, HostAction},
         shadow::PoisonType,
+        symbols::{Function, FunctionPointer, FunctionPointerError, Symbols},
         GuestAddr,
     },
-    core::ffi::c_long,
-    libc::syscall,
+    core::{ffi::c_long, marker::PhantomData},
     thiserror::Error,
 };
 
 #[derive(Debug)]
-pub struct LibcHost;
+struct FunctionSyscall;
 
-impl Host for LibcHost {
-    type Error = LibcHostError;
+impl Function for FunctionSyscall {
+    type Func = unsafe extern "C" fn(num: c_long, ...) -> c_long;
+    const NAME: &'static str = "syscall\0";
+}
 
-    fn load(start: GuestAddr, len: usize) -> Result<(), LibcHostError> {
+#[derive(Debug)]
+pub struct LibcHost<S: Symbols> {
+    _phantom: PhantomData<S>,
+}
+
+impl<S: Symbols> Host for LibcHost<S> {
+    type Error = LibcHostError<S>;
+
+    fn load(start: GuestAddr, len: usize) -> Result<(), LibcHostError<S>> {
         unsafe {
+            let syscall = Self::get_syscall()?;
             let ret = syscall(Self::SYSCALL_NO, HostAction::CheckLoad as usize, start, len);
             if ret != 0 {
                 return Err(LibcHostError::SyscallError(ret));
@@ -28,8 +39,9 @@ impl Host for LibcHost {
         Ok(())
     }
 
-    fn store(start: GuestAddr, len: usize) -> Result<(), LibcHostError> {
+    fn store(start: GuestAddr, len: usize) -> Result<(), LibcHostError<S>> {
         unsafe {
+            let syscall = Self::get_syscall()?;
             let ret = syscall(
                 Self::SYSCALL_NO,
                 HostAction::CheckStore as usize,
@@ -43,8 +55,9 @@ impl Host for LibcHost {
         Ok(())
     }
 
-    fn poison(start: GuestAddr, len: usize, val: PoisonType) -> Result<(), LibcHostError> {
+    fn poison(start: GuestAddr, len: usize, val: PoisonType) -> Result<(), LibcHostError<S>> {
         unsafe {
+            let syscall = Self::get_syscall()?;
             let ret = syscall(
                 Self::SYSCALL_NO,
                 HostAction::Poison as usize,
@@ -59,7 +72,8 @@ impl Host for LibcHost {
         Ok(())
     }
 
-    fn unpoison(start: GuestAddr, len: usize) -> Result<(), LibcHostError> {
+    fn unpoison(start: GuestAddr, len: usize) -> Result<(), LibcHostError<S>> {
+        let syscall = Self::get_syscall()?;
         let ret = unsafe { syscall(Self::SYSCALL_NO, HostAction::Unpoison as usize, start, len) };
         if ret != 0 {
             return Err(LibcHostError::SyscallError(ret));
@@ -67,7 +81,8 @@ impl Host for LibcHost {
         Ok(())
     }
 
-    fn is_poison(start: GuestAddr, len: usize) -> Result<bool, LibcHostError> {
+    fn is_poison(start: GuestAddr, len: usize) -> Result<bool, LibcHostError<S>> {
+        let syscall = Self::get_syscall()?;
         let ret = unsafe { syscall(Self::SYSCALL_NO, HostAction::IsPoison as usize, start, len) };
         match ret {
             0 => Ok(false),
@@ -76,8 +91,9 @@ impl Host for LibcHost {
         }
     }
 
-    fn swap(enabled: bool) -> Result<(), LibcHostError> {
+    fn swap(enabled: bool) -> Result<(), LibcHostError<S>> {
         unsafe {
+            let syscall = Self::get_syscall()?;
             let ret = syscall(
                 Self::SYSCALL_NO,
                 HostAction::SwapState as usize,
@@ -90,8 +106,9 @@ impl Host for LibcHost {
         Ok(())
     }
 
-    fn alloc(start: GuestAddr, len: usize) -> Result<(), LibcHostError> {
+    fn alloc(start: GuestAddr, len: usize) -> Result<(), LibcHostError<S>> {
         unsafe {
+            let syscall = Self::get_syscall()?;
             let ret = syscall(Self::SYSCALL_NO, HostAction::Alloc as usize, start, len);
             if ret != 0 {
                 return Err(LibcHostError::SyscallError(ret));
@@ -100,7 +117,8 @@ impl Host for LibcHost {
         Ok(())
     }
 
-    fn dealloc(start: GuestAddr) -> Result<(), LibcHostError> {
+    fn dealloc(start: GuestAddr) -> Result<(), LibcHostError<S>> {
+        let syscall = Self::get_syscall()?;
         let ret = unsafe { syscall(Self::SYSCALL_NO, HostAction::Dealloc as usize, start) };
         if ret != 0 {
             return Err(LibcHostError::SyscallError(ret));
@@ -109,12 +127,22 @@ impl Host for LibcHost {
     }
 }
 
-impl LibcHost {
+impl<S: Symbols> LibcHost<S> {
     const SYSCALL_NO: c_long = 0xa2a4;
+
+    fn get_syscall() -> Result<<FunctionSyscall as Function>::Func, LibcHostError<S>> {
+        let sym = S::lookup("syscall").map_err(|e| LibcHostError::FailedToFindSymbol(e))?;
+        let f = FunctionSyscall::as_ptr(sym).map_err(|e| LibcHostError::InvalidPointerType(e))?;
+        Ok(f)
+    }
 }
 
 #[derive(Error, Debug, PartialEq)]
-pub enum LibcHostError {
+pub enum LibcHostError<S: Symbols> {
     #[error("Syscall error: {0:?}")]
     SyscallError(c_long),
+    #[error("Failed to find mmap functions")]
+    FailedToFindSymbol(S::Error),
+    #[error("Invalid pointer type: {0:?}")]
+    InvalidPointerType(FunctionPointerError),
 }

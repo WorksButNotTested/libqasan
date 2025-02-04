@@ -47,7 +47,7 @@ pub enum PoisonType {
     AsanHeapFreed = 0xfd,
 }
 
-pub trait Shadow: Sized + Debug {
+pub trait Shadow: Sized + Debug + Send {
     type Error: Debug;
     fn load(&self, start: GuestAddr, len: usize) -> Result<(), Self::Error>;
     fn store(&self, start: GuestAddr, len: usize) -> Result<(), Self::Error>;

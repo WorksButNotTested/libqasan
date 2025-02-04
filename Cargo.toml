@@ -1,12 +1,6 @@
 [workspace]
-members = [
-    "asan",
-    "gasan",
-    "qasan",
-    "zasan",
-    "fuzz"
-]
-resolver="2"
+members = ["asan", "gasan", "qasan", "zasan", "fuzz", "dummy_libc"]
+resolver = "2"
 
 [profile.dev]
 panic = "abort"

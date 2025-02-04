@@ -10,7 +10,7 @@
 //! re-used for a period of time.
 use {
     crate::{
-        allocator::{backend::AllocatorBackend, frontend::Allocator},
+        allocator::{backend::AllocatorBackend, frontend::AllocatorFrontend},
         shadow::{PoisonType, Shadow},
         tracking::Tracking,
         GuestAddr,
@@ -25,9 +25,10 @@ use {
 };
 
 struct Allocation {
-    addr: GuestAddr,
-    len: usize,
-    align: usize,
+    frontend_len: usize,
+    backend_addr: GuestAddr,
+    backend_len: usize,
+    backend_align: usize,
 }
 
 pub struct DefaultFrontend<B: AllocatorBackend, S: Shadow, T: Tracking> {
@@ -41,7 +42,7 @@ pub struct DefaultFrontend<B: AllocatorBackend, S: Shadow, T: Tracking> {
     quaratine_used: usize,
 }
 
-impl<B: AllocatorBackend, S: Shadow, T: Tracking> Allocator for DefaultFrontend<B, S, T> {
+impl<B: AllocatorBackend, S: Shadow, T: Tracking> AllocatorFrontend for DefaultFrontend<B, S, T> {
     type Error = DefaultFrontendError<B, S, T>;
 
     fn alloc(&mut self, len: usize, align: usize) -> Result<GuestAddr, Self::Error> {
@@ -76,9 +77,10 @@ impl<B: AllocatorBackend, S: Shadow, T: Tracking> Allocator for DefaultFrontend<
         self.allocations.insert(
             data,
             Allocation {
-                addr: orig,
-                len: allocated_size,
-                align: Self::ALLOC_ALIGN_SIZE,
+                frontend_len: len,
+                backend_addr: orig,
+                backend_len: allocated_size,
+                backend_align: Self::ALLOC_ALIGN_SIZE,
             },
         );
 
@@ -112,15 +114,28 @@ impl<B: AllocatorBackend, S: Shadow, T: Tracking> Allocator for DefaultFrontend<
             .remove(&addr)
             .ok_or_else(|| DefaultFrontendError::InvalidAddress(addr))?;
         self.shadow
-            .poison(alloc.addr, alloc.len, PoisonType::AsanHeapFreed)
+            .poison(
+                alloc.backend_addr,
+                alloc.backend_len,
+                PoisonType::AsanHeapFreed,
+            )
             .map_err(|e| DefaultFrontendError::ShadowError(e))?;
         self.tracking
             .dealloc(addr)
             .map_err(|e| DefaultFrontendError::TrackingError(e))?;
-        self.quaratine_used += alloc.len;
+        self.quaratine_used += alloc.backend_len;
         self.quarantine.push_back(alloc);
         self.purge_quarantine()?;
         Ok(())
+    }
+
+    fn get_size(&self, addr: GuestAddr) -> Result<usize, Self::Error> {
+        debug!("get_size - addr: 0x{:x}", addr);
+        let alloc = self
+            .allocations
+            .get(&addr)
+            .ok_or_else(|| DefaultFrontendError::InvalidAddress(addr))?;
+        Ok(alloc.frontend_len)
     }
 }
 
@@ -163,9 +178,9 @@ impl<B: AllocatorBackend, S: Shadow, T: Tracking> DefaultFrontend<B, S, T> {
                 .pop_front()
                 .ok_or(DefaultFrontendError::QuarantineCorruption)?;
             self.backend
-                .dealloc(alloc.addr, alloc.len, alloc.align)
+                .dealloc(alloc.backend_addr, alloc.backend_len, alloc.backend_align)
                 .map_err(|e| DefaultFrontendError::AllocatorError(e))?;
-            self.quaratine_used -= alloc.len;
+            self.quaratine_used -= alloc.backend_len;
         }
         Ok(())
     }

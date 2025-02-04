@@ -7,14 +7,14 @@ edition = "2021"
 crate-type = ["rlib"]
 
 [features]
-default = [ "dlmalloc", "guest", "host", "libc", "linux", "mimalloc", "std", "tracking" ]
-dlmalloc = ["dep:dlmalloc" ]
+default = ["dlmalloc", "guest", "host", "libc", "linux", "test", "tracking"]
+dlmalloc = ["dep:dlmalloc"]
 guest = []
+hooks = []
 host = ["dep:syscalls"]
 libc = ["dep:libc"]
 linux = ["dep:rustix"]
-mimalloc = ["dep:mimalloc"]
-std = []
+test = []
 tracking = []
 
 [dependencies]
@@ -22,9 +22,16 @@ bitflags = { version = "2.8.0", default-features = false }
 dlmalloc = { version = "0.2.7", default-features = false, optional = true }
 log = { version = "0.4.22", default-features = false }
 libc = { version = "0.2.169", default-features = false, optional = true }
-mimalloc = { version = "0.1.43", default-features = false, optional = true }
-rustix = { version = "0.38.38", default-features = false, features = ["mm"], optional = true}
-spin = { version = "0.9.8", default-features = false, features = ["lazy", "mutex", "spin_mutex"] }
+readonly = { version = "0.2.12", default-features = false }
+rustix = { version = "0.38.38", default-features = false, features = [
+  "mm",
+  "stdio",
+], optional = true }
+spin = { version = "0.9.8", default-features = false, features = [
+  "lazy",
+  "mutex",
+  "spin_mutex",
+] }
 syscalls = { version = "0.6.18", default-features = false, optional = true }
 thiserror = { version = "2.0.11", default-features = false }
 

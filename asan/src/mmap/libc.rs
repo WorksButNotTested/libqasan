@@ -6,7 +6,7 @@
 use {
     crate::{
         mmap::{Mmap, MmapProt},
-        symbols::Symbols,
+        symbols::{Function, FunctionPointer, FunctionPointerError, Symbols},
         GuestAddr,
     },
     core::{
@@ -16,19 +16,43 @@ use {
         ptr::null_mut,
         slice::{from_raw_parts, from_raw_parts_mut},
     },
-    libc::{__errno_location, off_t, size_t, PROT_EXEC, PROT_NONE, PROT_READ, PROT_WRITE},
+    libc::{off_t, size_t, PROT_EXEC, PROT_NONE, PROT_READ, PROT_WRITE},
     log::trace,
-    spin::Mutex,
     thiserror::Error,
 };
 
-type FnMmap = unsafe extern "C" fn(*mut c_void, size_t, c_int, c_int, c_int, off_t) -> *mut c_void;
-type FnMunmap = unsafe extern "C" fn(*mut c_void, size_t) -> c_int;
-type FnMprotect = unsafe extern "C" fn(*mut c_void, size_t, c_int) -> c_int;
+#[derive(Debug)]
+struct FunctionMmap;
 
-static MMAP_FUNC: Mutex<Option<FnMmap>> = Mutex::new(None);
-static MUNMAP_FUNC: Mutex<Option<FnMunmap>> = Mutex::new(None);
-static MPROTECT_FUNC: Mutex<Option<FnMprotect>> = Mutex::new(None);
+impl Function for FunctionMmap {
+    type Func =
+        unsafe extern "C" fn(*mut c_void, size_t, c_int, c_int, c_int, off_t) -> *mut c_void;
+    const NAME: &'static str = "mmap\0";
+}
+
+#[derive(Debug)]
+struct FunctionMunmap;
+
+impl Function for FunctionMunmap {
+    type Func = unsafe extern "C" fn(*mut c_void, size_t) -> c_int;
+    const NAME: &'static str = "munmap\0";
+}
+
+#[derive(Debug)]
+struct FunctionMprotect;
+
+impl Function for FunctionMprotect {
+    type Func = unsafe extern "C" fn(*mut c_void, size_t, c_int) -> c_int;
+    const NAME: &'static str = "mprotect\0";
+}
+
+#[derive(Debug)]
+struct FunctionErrnoLocation;
+
+impl Function for FunctionErrnoLocation {
+    type Func = unsafe extern "C" fn() -> *mut c_int;
+    const NAME: &'static str = "errno_location\0";
+}
 
 #[derive(Debug)]
 pub struct LibcMmap<S: Symbols> {
@@ -58,16 +82,33 @@ impl<S: Symbols> PartialEq for LibcMmap<S> {
 impl<S: Symbols> Eq for LibcMmap<S> {}
 
 impl<S: Symbols> LibcMmap<S> {
-    fn get_mmap() -> Result<FnMmap, S::Error> {
-        Ok(*MMAP_FUNC.lock().get_or_insert(S::lookup("mmap")?))
+    fn get_func<F: Function>() -> Result<F::Func, LibcMapError<S>> {
+        let addr =
+            S::lookup(F::NAME).map_err(|e| LibcMapError::<S>::FailedToFindMmapFunctions(e))?;
+        let f = F::as_ptr(addr).map_err(|e| LibcMapError::InvalidPointerType(e))?;
+        Ok(f)
     }
 
-    fn get_munmap() -> Result<FnMunmap, S::Error> {
-        Ok(*MUNMAP_FUNC.lock().get_or_insert(S::lookup("munmap")?))
+    fn get_mmap() -> Result<<FunctionMmap as Function>::Func, LibcMapError<S>> {
+        Self::get_func::<FunctionMmap>()
     }
 
-    fn get_mprotect() -> Result<FnMprotect, S::Error> {
-        Ok(*MPROTECT_FUNC.lock().get_or_insert(S::lookup("mprotect")?))
+    fn get_munmap() -> Result<<FunctionMunmap as Function>::Func, LibcMapError<S>> {
+        Self::get_func::<FunctionMunmap>()
+    }
+
+    fn get_mprotect() -> Result<<FunctionMprotect as Function>::Func, LibcMapError<S>> {
+        Self::get_func::<FunctionMprotect>()
+    }
+
+    fn get_errno_location() -> Result<<FunctionErrnoLocation as Function>::Func, LibcMapError<S>> {
+        Self::get_func::<FunctionErrnoLocation>()
+    }
+
+    fn errno() -> Result<c_int, LibcMapError<S>> {
+        let errno_location = Self::get_errno_location()?;
+        let errno = unsafe { *errno_location() };
+        Ok(errno)
     }
 }
 
@@ -75,7 +116,7 @@ impl<S: Symbols> Mmap for LibcMmap<S> {
     type Error = LibcMapError<S>;
 
     fn map(len: usize) -> Result<LibcMmap<S>, LibcMapError<S>> {
-        let mmap = Self::get_mmap().map_err(|e| LibcMapError::<S>::FailedToFindMmapFunctions(e))?;
+        let mmap = Self::get_mmap()?;
         let map = unsafe {
             mmap(
                 null_mut(),
@@ -87,7 +128,7 @@ impl<S: Symbols> Mmap for LibcMmap<S> {
             )
         };
         if map == libc::MAP_FAILED {
-            let errno = unsafe { *__errno_location() };
+            let errno = Self::errno()?;
             Err(LibcMapError::FailedToMap(len, errno))
         } else {
             let addr = map as GuestAddr;
@@ -101,7 +142,7 @@ impl<S: Symbols> Mmap for LibcMmap<S> {
     }
 
     fn map_at(addr: GuestAddr, len: usize) -> Result<LibcMmap<S>, LibcMapError<S>> {
-        let mmap = Self::get_mmap().map_err(|e| LibcMapError::<S>::FailedToFindMmapFunctions(e))?;
+        let mmap = Self::get_mmap()?;
         let map = unsafe {
             mmap(
                 addr as *mut c_void,
@@ -118,7 +159,7 @@ impl<S: Symbols> Mmap for LibcMmap<S> {
         };
         trace!("Mapped: 0x{:x}-0x{:x}", addr, addr + len);
         if map == libc::MAP_FAILED {
-            let errno = unsafe { *__errno_location() };
+            let errno = Self::errno()?;
             Err(LibcMapError::FailedToMapAt(addr, len, errno))
         } else {
             Ok(LibcMmap {
@@ -136,11 +177,10 @@ impl<S: Symbols> Mmap for LibcMmap<S> {
             len,
             prot
         );
-        let mprotect =
-            Self::get_mprotect().map_err(|e| LibcMapError::<S>::FailedToFindMmapFunctions(e))?;
+        let mprotect = Self::get_mprotect()?;
         let ret = unsafe { mprotect(addr as *mut c_void, len, c_int::from(&prot)) };
         if ret != 0 {
-            let errno = unsafe { *__errno_location() };
+            let errno = Self::errno()?;
             Err(LibcMapError::FailedToMprotect(addr, len, prot, errno))?;
         }
 
@@ -175,11 +215,9 @@ impl From<&MmapProt> for c_int {
 impl<S: Symbols> Drop for LibcMmap<S> {
     fn drop(&mut self) {
         unsafe {
-            let munmap = Self::get_munmap()
-                .map_err(|e| LibcMapError::<S>::FailedToFindMmapFunctions(e))
-                .unwrap();
+            let munmap = Self::get_munmap().unwrap();
             if munmap(self.addr as *mut c_void, self.len) < 0 {
-                let errno = *__errno_location();
+                let errno = Self::errno().unwrap();
                 panic!("Errno: {}", errno);
             }
             trace!("Unmapped: 0x{:x}-0x{:x}", self.addr, self.addr + self.len);
@@ -197,4 +235,6 @@ pub enum LibcMapError<S: Symbols> {
     FailedToFindMmapFunctions(S::Error),
     #[error("Failed to mprotect - addr: {0}, len: {1}, prot: {2:?}, errno: {3}")]
     FailedToMprotect(GuestAddr, usize, MmapProt, c_int),
+    #[error("Invalid pointer type: {0:?}")]
+    InvalidPointerType(FunctionPointerError),
 }

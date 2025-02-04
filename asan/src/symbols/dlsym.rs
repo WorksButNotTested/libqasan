@@ -6,11 +6,11 @@
 //! - LookupTypeNext: This performs the lookup using
 //!   `dlsym(RTLD_NEXT, name)`
 use {
-    crate::symbols::Symbols,
-    alloc::{
-        ffi::{CString, NulError},
-        fmt::Debug,
+    crate::{
+        symbols::{Symbol, Symbols},
+        GuestAddr,
     },
+    alloc::{ffi::NulError, fmt::Debug},
     core::{
         ffi::{c_void, CStr},
         marker::PhantomData,
@@ -19,7 +19,7 @@ use {
     thiserror::Error,
 };
 
-pub trait LookupType: Debug {
+pub trait LookupType: Debug + Send {
     const HANDLE: *mut c_void;
 }
 
@@ -43,21 +43,16 @@ pub struct DlSymSymbols<L: LookupType> {
 impl<L: LookupType> Symbols for DlSymSymbols<L> {
     type Error = DlSymSymbolsError;
 
-    fn lookup<F: Copy>(name: &str) -> Result<F, Self::Error> {
-        let name_string = name.to_string();
-        let name_cstring = CString::new(name)?;
-        let name_cstr: &CStr = name_cstring.as_c_str();
-        let p_sym = unsafe { dlsym(L::HANDLE, name_cstr.as_ptr()) };
+    fn lookup(name: &'static str) -> Result<Symbol, Self::Error> {
+        let p_sym = unsafe { dlsym(L::HANDLE, name.as_ptr() as *const i8) };
         if p_sym.is_null() {
             Err(DlSymSymbolsError::FailedToFindFunction(
-                name_string,
+                name,
                 Self::get_error(),
-            ))?;
+            ))
+        } else {
+            Ok(Symbol::new(name, p_sym as GuestAddr))
         }
-        let pp_sym = (&p_sym) as *const *mut c_void;
-        let p_f = pp_sym as *const F;
-        let f = unsafe { *p_f };
-        Ok(f)
     }
 }
 
@@ -95,5 +90,5 @@ pub enum DlSymSymbolsError {
     #[error("Bad function name: {0:?}")]
     BadFunctionName(#[from] NulError),
     #[error("Failed to find function: {0}, error: {1}")]
-    FailedToFindFunction(String, &'static str),
+    FailedToFindFunction(&'static str, &'static str),
 }

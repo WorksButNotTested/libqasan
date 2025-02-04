@@ -4,21 +4,16 @@
 //! `Mmap` trait described in the `mmap` module.
 use {
     crate::{allocator::backend::AllocatorBackend, mmap::Mmap, GuestAddr},
-    alloc::{
-        collections::BTreeMap,
-        fmt::{self, Debug, Formatter},
-    },
-    core::ptr::null_mut,
+    alloc::fmt::{self, Debug, Formatter},
+    core::{marker::PhantomData, ptr::null_mut},
     dlmalloc::{Allocator, Dlmalloc},
     log::debug,
-    spin::Mutex,
     thiserror::Error,
 };
 
-const PAGE_SIZE: usize = 4096;
-
 pub struct DlmallocBackendMap<M: Mmap> {
-    maps: Mutex<BTreeMap<GuestAddr, M>>,
+    page_size: usize,
+    _phantom: PhantomData<M>,
 }
 
 unsafe impl<M: Mmap + Send> Allocator for DlmallocBackendMap<M> {
@@ -28,10 +23,7 @@ unsafe impl<M: Mmap + Send> Allocator for DlmallocBackendMap<M> {
         match map {
             Ok(mut map) => {
                 let slice = map.as_mut_slice();
-                let addr = slice.as_mut_ptr() as GuestAddr;
                 let result = (slice.as_mut_ptr(), slice.len(), 0);
-                let mut maps = self.maps.lock();
-                maps.insert(addr, map);
                 result
             }
             Err(e) => {
@@ -59,9 +51,7 @@ unsafe impl<M: Mmap + Send> Allocator for DlmallocBackendMap<M> {
 
     fn free(&self, ptr: *mut u8, size: usize) -> bool {
         debug!("free - ptr: 0x{:p}, size: 0x{:x}", ptr, size);
-        let mut maps = self.maps.lock();
-        let addr = ptr as GuestAddr;
-        maps.remove(&addr).is_some()
+        false
     }
 
     fn can_release_part(&self, flags: u32) -> bool {
@@ -76,21 +66,16 @@ unsafe impl<M: Mmap + Send> Allocator for DlmallocBackendMap<M> {
 
     fn page_size(&self) -> usize {
         debug!("page_size");
-        PAGE_SIZE
+        self.page_size
     }
 }
 
 impl<M: Mmap> DlmallocBackendMap<M> {
-    pub const fn new() -> DlmallocBackendMap<M> {
+    pub const fn new(page_size: usize) -> DlmallocBackendMap<M> {
         DlmallocBackendMap {
-            maps: Mutex::new(BTreeMap::new()),
+            page_size,
+            _phantom: PhantomData,
         }
-    }
-}
-
-impl<M: Mmap> Default for DlmallocBackendMap<M> {
-    fn default() -> Self {
-        Self::new()
     }
 }
 
@@ -127,16 +112,10 @@ impl<M: Mmap + Send> AllocatorBackend for DlmallocBackend<M> {
 }
 
 impl<M: Mmap + Send> DlmallocBackend<M> {
-    pub const fn new() -> DlmallocBackend<M> {
-        let backend = DlmallocBackendMap::new();
+    pub const fn new(page_size: usize) -> DlmallocBackend<M> {
+        let backend = DlmallocBackendMap::new(page_size);
         let dlmalloc = Dlmalloc::<DlmallocBackendMap<M>>::new_with_allocator(backend);
         Self { dlmalloc }
-    }
-}
-
-impl<M: Mmap + Send> Default for DlmallocBackend<M> {
-    fn default() -> Self {
-        Self::new()
     }
 }
 

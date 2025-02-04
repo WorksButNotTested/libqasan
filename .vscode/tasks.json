@@ -440,7 +440,40 @@
         {
             "label": "Pretty",
             "type": "shell",
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "dependsOn": [
+                "Pretty Rust",
+                "Pretty TOML",
+            ],
+            "presentation": {
+                "clear": true,
+                "reveal": "always",
+
+                "focus": true,
+            }
+        },
+        {
+            "label": "Pretty Rust",
+            "type": "shell",
             "command": "cargo fmt",
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "presentation": {
+                "clear": true,
+                "reveal": "always",
+
+                "focus": true,
+            }
+        },
+        {
+            "label": "Pretty TOML",
+            "type": "shell",
+            "command": "taplo fmt",
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -493,6 +526,37 @@
                 "reveal": "always",
                 "focus": true,
             }
+        },
+        {
+            "label": "Everything",
+            "type": "shell",
+            "dependsOn": [
+                "Build - Debug (arm)",
+                "Build - Debug (aarch64)",
+                "Build - Debug (i686)",
+                "Build - Debug (x64)",
+                "Build - Debug (powerpc)",
+                "Build - Release (arm)",
+                "Build - Release (aarch64)",
+                "Build - Release (i686)",
+                "Build - Release (x64)",
+                "Build - Release (powerpc)",
+                "Build - Test (arm)",
+                "Build - Test (aarch64)",
+                "Build - Test (i686)",
+                "Build - Test (x64)",
+                "Build - Test (powerpc)",
+                "Clippy",
+            ],
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}",
+            },
+            "presentation": {
+                "clear": true,
+                "reveal": "always",
+                "focus": true,
+            },
         },
 
     ]

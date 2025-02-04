@@ -18,8 +18,10 @@ command = "cargo"
 args = [
   "fuzz",
   "run",
-  "--sanitizer", "none",
-  "--target", "${TARGET}",
+  "--sanitizer",
+  "none",
+  "--target",
+  "${TARGET}",
   "${HARNESS}",
 ]
 
@@ -29,8 +31,10 @@ command = "cargo"
 args = [
   "fuzz",
   "run",
-  "--sanitizer", "none",
-  "--target", "${TARGET}",
+  "--sanitizer",
+  "none",
+  "--target",
+  "${TARGET}",
   "--release",
   "${HARNESS}",
   "--",

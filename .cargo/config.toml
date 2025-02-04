@@ -13,4 +13,3 @@ runner = "qemu-aarch64 -L /usr/aarch64-linux-gnu/"
 [target.powerpc-unknown-linux-gnu]
 linker = "powerpc-linux-gnu-gcc"
 runner = "qemu-ppc -L /usr/powerpc-linux-gnu/"
-

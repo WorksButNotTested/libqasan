@@ -408,7 +408,7 @@ impl<M: Mmap, L: ShadowLayout> GuestShadow<M, L> {
     }
 }
 
-pub trait ShadowLayout: Debug {
+pub trait ShadowLayout: Debug + Send {
     const LOW_MEM_OFFSET: usize;
     const LOW_MEM_SIZE: usize;
 

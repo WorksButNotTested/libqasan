@@ -56,7 +56,7 @@ impl Debug for MmapProt {
     }
 }
 
-pub trait Mmap: Sized + Ord + Debug {
+pub trait Mmap: Sized + Ord + Debug + Send {
     type Error: Debug;
     fn map(len: usize) -> Result<Self, Self::Error>;
     fn map_at(addr: GuestAddr, len: usize) -> Result<Self, Self::Error>;

@@ -21,5 +21,24 @@
                 "RUST_BACKTRACE": "1",
             }
         },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug app",
+            "cargo": {
+                "args": [
+                    "run",
+                    "--target=x86_64-unknown-linux-gnu",
+                    "--package=app",
+                    "--bin=gasan",
+                ],
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "RUST_LOG": "trace",
+                "RUST_BACKTRACE": "1",
+            }
+        },
     ]
 }

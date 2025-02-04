@@ -1,0 +1,21 @@
+{
+  global:
+    qasan_allocate;
+    qasan_deallocate;
+
+    aligned_alloc;
+    calloc;
+    malloc;
+    malloc_usable_size;
+    memalign;
+    posix_memalign;
+    pvalloc;
+    read;
+    realloc;
+    reallocarray;
+    valloc;
+    write;
+
+  local:
+    *;
+};

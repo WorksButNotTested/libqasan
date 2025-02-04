@@ -9,6 +9,19 @@ crate-type = ["staticlib"]
 [features]
 
 [dependencies]
-asan = { path = "../asan", default-features = false, features = ["dlmalloc", "guest", "host", "linux", "tracking"] }
+asan = { path = "../asan", default-features = false, features = [
+  "dlmalloc",
+  "guest",
+  "hooks",
+  "host",
+  "linux",
+  "tracking",
+] }
+ctor = { version = "0.2.9", default-features = false }
 log = { version = "0.4.22", default-features = false }
-spin = { version = "0.9.8", default-features = false, features = ["lazy", "mutex", "spin_mutex"] }
+rustix = { version = "0.38.38", default-features = false, features = ["stdio"] }
+spin = { version = "0.9.8", default-features = false, features = [
+  "lazy",
+  "mutex",
+  "spin_mutex",
+] }

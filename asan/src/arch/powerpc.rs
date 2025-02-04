@@ -3,12 +3,6 @@ use {
     log::error,
 };
 
-#[no_mangle]
-extern "C" fn _Unwind_Resume() {
-    error!("_Unwind_Resume");
-    loop {}
-}
-
 // Rustix does not currently implement these necessary symbols for powerpc.
 #[no_mangle]
 pub unsafe extern "C" fn munmap(_ptr: *mut c_void, _len: usize) -> c_int {

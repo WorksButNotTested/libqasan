@@ -4,7 +4,7 @@ use {
     asan::{
         allocator::{
             backend::dlmalloc::DlmallocBackend,
-            frontend::{default::DefaultFrontend, Allocator},
+            frontend::{default::DefaultFrontend, AllocatorFrontend},
         },
         mmap::linux::LinuxMmap,
         shadow::{
@@ -25,9 +25,11 @@ type DF = DefaultFrontend<
     GuestTracking,
 >;
 
+const PAGE_SIZE: usize = 4096;
+
 static INIT_ONCE: LazyLock<Mutex<DF>> = LazyLock::new(|| {
     env_logger::init();
-    let backend = DlmallocBackend::<LinuxMmap>::new();
+    let backend = DlmallocBackend::<LinuxMmap>::new(PAGE_SIZE);
     let shadow = GuestShadow::<LinuxMmap, DefaultShadowLayout>::new().unwrap();
     let tracking = GuestTracking::new().unwrap();
     let frontend = DF::new(
