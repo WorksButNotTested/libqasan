@@ -33,6 +33,8 @@
 #![cfg_attr(not(any(feature = "std", test)), no_std)]
 #![cfg_attr(target_arch = "powerpc", feature(asm_experimental_arch))]
 
+pub mod host_info;
+
 pub mod allocator;
 
 #[cfg(feature = "host")]
