@@ -10,27 +10,8 @@
                     "test",
                     "--target=i686-unknown-linux-gnu",
                     "--no-run",
-                    "--test=patch_raw",
+                    "--test=default_frontend",
                     "--package=asan"
-                ],
-            },
-            "args": [],
-            "cwd": "${workspaceFolder}",
-            "env": {
-                "RUST_LOG": "trace",
-                "RUST_BACKTRACE": "1",
-            }
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug app",
-            "cargo": {
-                "args": [
-                    "run",
-                    "--target=x86_64-unknown-linux-gnu",
-                    "--package=app",
-                    "--bin=gasan",
                 ],
             },
             "args": [],

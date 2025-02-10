@@ -1,10 +1,9 @@
 use {
     crate::{
-        asan_store, asan_sym,
-        hooks::{size_t, ssize_t},
-        symbols::{Function, FunctionPointer},
+        hooks::{asan_store, asan_sym, size_t, ssize_t},
+        symbols::{AtomicGuestAddr, Function, FunctionPointer},
     },
-    core::ffi::c_long,
+    core::ffi::{c_char, c_long},
     libc::{c_int, c_void, SYS_read},
     log::trace,
 };
@@ -17,14 +16,17 @@ impl Function for FunctionSyscall {
     const NAME: &'static str = "syscall\0";
 }
 
+static SYSCALL_ADDR: AtomicGuestAddr = AtomicGuestAddr::new();
+
 /// # Safety
 /// See man pages
 #[no_mangle]
 pub unsafe extern "C" fn read(fd: c_int, buf: *mut c_void, count: size_t) -> ssize_t {
     trace!("read - fd: {:#x}, buf: {:p}, count: {:#x}", fd, buf, count);
     asan_store(buf, count);
-    let symbol = asan_sym("syscall");
-    let syscall = FunctionSyscall::as_ptr(symbol).unwrap();
+    let addr = SYSCALL_ADDR
+        .get_or_insert_with(|| asan_sym(FunctionSyscall::NAME.as_ptr() as *const c_char));
+    let syscall = FunctionSyscall::as_ptr(addr).unwrap();
     let ret = syscall(SYS_read, fd, buf, count);
     ret as ssize_t
 }

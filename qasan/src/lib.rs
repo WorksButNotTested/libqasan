@@ -1,97 +1,37 @@
 #![no_std]
+extern crate alloc;
 
 use {
     asan::{
         allocator::frontend::{default::DefaultFrontend, AllocatorFrontend},
-        asan_alloc, asan_dealloc, asan_init,
         host::libc::LibcHost,
-        logger::linux::LinuxLogger,
+        logger::libc::LibcLogger,
         shadow::{host::HostShadow, Shadow},
         symbols::{
-            cached::CachedSymbols,
             dlsym::{DlSymSymbols, LookupTypeNext},
-            Symbol, Symbols,
+            Symbols,
         },
         tracking::host::HostTracking,
-        Asan, GuestAddr,
+        GuestAddr,
     },
-    core::ffi::c_void,
-    ctor::ctor,
+    core::ffi::{c_char, c_void},
     log::{trace, Level},
+    spin::{Lazy, Mutex},
 };
 
-type Syms = CachedSymbols<DlSymSymbols<LookupTypeNext>>;
+type Syms = DlSymSymbols<LookupTypeNext>;
 
 type BE = asan::allocator::backend::dlmalloc::DlmallocBackend<asan::mmap::libc::LibcMmap<Syms>>;
 
 pub type QasanAllocator =
     DefaultFrontend<BE, HostShadow<LibcHost<Syms>>, HostTracking<LibcHost<Syms>>>;
 
-pub type QasanSyms = CachedSymbols<DlSymSymbols<LookupTypeNext>>;
-
-struct Qasan {
-    allocator: QasanAllocator,
-}
+pub type QasanSyms = DlSymSymbols<LookupTypeNext>;
 
 const PAGE_SIZE: usize = 4096;
 
-impl Asan for Qasan {
-    fn asan_load(&mut self, addr: *const c_void, size: usize) {
-        trace!("load - addr: 0x{:x}, size: {:#x}", addr as GuestAddr, size);
-        if self
-            .allocator
-            .shadow()
-            .is_poison(addr as GuestAddr, size)
-            .unwrap()
-        {
-            panic!("Poisoned - addr: 0x{:p}, size: 0x{:x}", addr, size);
-        }
-    }
-
-    fn asan_store(&mut self, addr: *const c_void, size: usize) {
-        trace!("store - addr: 0x{:x}, size: {:#x}", addr as GuestAddr, size);
-        if self
-            .allocator
-            .shadow()
-            .is_poison(addr as GuestAddr, size)
-            .unwrap()
-        {
-            panic!("Poisoned - addr: 0x{:p}, size: 0x{:x}", addr, size);
-        }
-    }
-
-    fn asan_alloc(&mut self, len: usize, align: usize) -> *mut c_void {
-        trace!("alloc - len: {:#x}, align: {:#x}", len, align);
-        self.allocator.alloc(len, align).unwrap() as *mut c_void
-    }
-
-    fn asan_dealloc(&mut self, addr: *const c_void) {
-        trace!("free - addr: 0x{:p}", addr);
-        self.allocator.dealloc(addr as GuestAddr).unwrap();
-    }
-
-    fn asan_get_size(&mut self, addr: *const c_void) -> usize {
-        trace!("get_size - addr: 0x{:p}", addr);
-        self.allocator.get_size(addr as GuestAddr).unwrap()
-    }
-
-    fn asan_sym(&mut self, name: &'static str) -> Symbol {
-        QasanSyms::lookup(name).unwrap()
-    }
-
-    fn asan_page_size(&self) -> usize {
-        PAGE_SIZE
-    }
-}
-
-#[ctor]
-#[no_mangle]
-fn qasan_init() {
-    init();
-}
-
-pub extern "C" fn init() {
-    LinuxLogger::initialize(Level::Info);
+static FRONTEND: Lazy<Mutex<QasanAllocator>> = Lazy::new(|| {
+    LibcLogger::initialize::<QasanSyms>(Level::Trace);
     let backend = BE::new(PAGE_SIZE);
     let shadow = HostShadow::<LibcHost<Syms>>::new().unwrap();
     let tracking = HostTracking::<LibcHost<Syms>>::new().unwrap();
@@ -103,8 +43,68 @@ pub extern "C" fn init() {
         QasanAllocator::DEFAULT_QUARANTINE_SIZE,
     )
     .unwrap();
-    let qasan = Qasan { allocator };
-    asan_init(qasan);
+    Mutex::new(allocator)
+});
+
+#[no_mangle]
+pub fn asan_load(addr: *const c_void, size: usize) {
+    trace!("load - addr: 0x{:x}, size: {:#x}", addr as GuestAddr, size);
+    if FRONTEND
+        .lock()
+        .shadow()
+        .is_poison(addr as GuestAddr, size)
+        .unwrap()
+    {
+        panic!("Poisoned - addr: 0x{:p}, size: 0x{:x}", addr, size);
+    }
+}
+
+#[no_mangle]
+pub fn asan_store(addr: *const c_void, size: usize) {
+    trace!("store - addr: 0x{:x}, size: {:#x}", addr as GuestAddr, size);
+    if FRONTEND
+        .lock()
+        .shadow()
+        .is_poison(addr as GuestAddr, size)
+        .unwrap()
+    {
+        panic!("Poisoned - addr: 0x{:p}, size: 0x{:x}", addr, size);
+    }
+}
+
+#[no_mangle]
+pub fn asan_alloc(len: usize, align: usize) -> *mut c_void {
+    trace!("alloc - len: {:#x}, align: {:#x}", len, align);
+    let ptr = FRONTEND.lock().alloc(len, align).unwrap() as *mut c_void;
+    trace!(
+        "alloc - len: {:#x}, align: {:#x}, ptr: 0x{:p}",
+        len,
+        align,
+        ptr
+    );
+    ptr
+}
+
+#[no_mangle]
+pub fn asan_dealloc(addr: *const c_void) {
+    trace!("free - addr: 0x{:p}", addr);
+    FRONTEND.lock().dealloc(addr as GuestAddr).unwrap();
+}
+
+#[no_mangle]
+pub fn asan_get_size(addr: *const c_void) -> usize {
+    trace!("get_size - addr: 0x{:p}", addr);
+    FRONTEND.lock().get_size(addr as GuestAddr).unwrap()
+}
+
+#[no_mangle]
+pub fn asan_sym(name: *const c_char) -> GuestAddr {
+    QasanSyms::lookup(name).unwrap()
+}
+
+#[no_mangle]
+pub fn asan_page_size() -> usize {
+    PAGE_SIZE
 }
 
 #[no_mangle]

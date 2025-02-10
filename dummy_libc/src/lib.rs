@@ -20,11 +20,29 @@ pub unsafe extern "C" fn dlerror() -> *mut c_char {
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
-    loop {}
+    unimplemented!()
 }
 
 #[cfg(target_arch = "arm")]
 #[no_mangle]
 extern "C" fn __aeabi_unwind_cpp_pr0() {
-    loop {}
+    unimplemented!()
+}
+
+#[cfg(target_arch = "powerpc")]
+#[no_mangle]
+extern "C" fn rust_eh_personality() {
+    unimplemented!();
+}
+
+#[cfg(target_arch = "powerpc")]
+#[no_mangle]
+pub unsafe extern "C" fn memcpy(_dest: *mut u8, _src: *const u8, _count: usize) {
+    unimplemented!();
+}
+
+#[cfg(target_arch = "powerpc")]
+#[no_mangle]
+pub unsafe extern "C" fn memset(_dest: *mut u8, _value: u8, _count: usize) {
+    unimplemented!();
 }

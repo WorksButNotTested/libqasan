@@ -3,51 +3,109 @@
 //! substitute this functionality may be helpful for targets where
 //! conventional symbol lookup is not possible, e.g. if libc is statically
 //! linked
-use {crate::GuestAddr, alloc::fmt::Debug, core::ffi::c_void, thiserror::Error};
-
-pub mod cached;
+use {
+    crate::GuestAddr,
+    alloc::fmt::Debug,
+    core::{
+        ffi::{c_char, c_void},
+        ptr::null_mut,
+        sync::atomic::{AtomicPtr, Ordering},
+    },
+    thiserror::Error,
+};
 
 #[cfg(feature = "libc")]
 pub mod dlsym;
 
 pub mod nop;
 
-#[readonly::make]
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Symbol {
-    pub name: &'static str,
-    pub addr: GuestAddr,
+pub struct AtomicGuestAddr {
+    addr: AtomicPtr<c_void>,
 }
 
-impl Symbol {
-    pub fn new(name: &'static str, addr: GuestAddr) -> Self {
-        Symbol { name, addr }
+impl AtomicGuestAddr {
+    pub const fn new() -> Self {
+        AtomicGuestAddr {
+            addr: AtomicPtr::new(null_mut()),
+        }
+    }
+
+    pub fn load(&self) -> Option<GuestAddr> {
+        let addr = self.addr.load(Ordering::SeqCst) as GuestAddr;
+        match addr {
+            GuestAddr::MIN => None,
+            _ => Some(addr),
+        }
+    }
+
+    pub fn store(&self, addr: GuestAddr) {
+        self.addr.store(addr as *mut c_void, Ordering::SeqCst);
+    }
+
+    pub fn get_or_insert_with<F>(&self, f: F) -> GuestAddr
+    where
+        F: FnOnce() -> GuestAddr,
+    {
+        if let Some(addr) = self.load() {
+            addr
+        } else {
+            let addr = f();
+            self.store(addr);
+            addr
+        }
+    }
+
+    pub fn try_get_or_insert_with<F, E>(&self, f: F) -> Result<GuestAddr, E>
+    where
+        F: FnOnce() -> Result<GuestAddr, E>,
+        E: Debug,
+    {
+        if let Some(addr) = self.load() {
+            Ok(addr)
+        } else {
+            let addr = f()?;
+            self.store(addr);
+            Ok(addr)
+        }
+    }
+}
+
+impl Default for AtomicGuestAddr {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
 pub trait Symbols: Debug + Sized + Send {
     type Error: Debug;
-    fn lookup(name: &'static str) -> Result<Symbol, Self::Error>;
+    fn lookup(name: *const c_char) -> Result<GuestAddr, Self::Error>;
 }
 
 pub trait Function {
-    type Func: Copy;
     const NAME: &'static str;
+    type Func: Copy;
+}
+
+pub trait SymbolsLookupStr: Symbols {
+    fn lookup_str(name: &str) -> Result<GuestAddr, Self::Error>;
+}
+
+impl<S: Symbols> SymbolsLookupStr for S {
+    fn lookup_str(name: &str) -> Result<GuestAddr, Self::Error> {
+        S::lookup(name.as_ptr() as *const c_char)
+    }
 }
 
 pub trait FunctionPointer: Function {
-    fn as_ptr(symbol: Symbol) -> Result<Self::Func, FunctionPointerError>;
+    fn as_ptr(addr: GuestAddr) -> Result<Self::Func, FunctionPointerError>;
 }
 
 impl<T: Function> FunctionPointer for T {
-    fn as_ptr(symbol: Symbol) -> Result<Self::Func, FunctionPointerError> {
-        if symbol.name != Self::NAME {
-            Err(FunctionPointerError::BadFunctionName(
-                symbol.name,
-                Self::NAME,
-            ))?;
+    fn as_ptr(addr: GuestAddr) -> Result<Self::Func, FunctionPointerError> {
+        if addr == GuestAddr::MIN || addr == GuestAddr::MAX {
+            Err(FunctionPointerError::BadAddress(addr))?;
         }
-        let pp_sym = (&symbol.addr) as *const GuestAddr as *const *mut c_void;
+        let pp_sym = (&addr) as *const GuestAddr as *const *mut c_void;
         let p_f = pp_sym as *const Self::Func;
         let f = unsafe { *p_f };
         Ok(f)
@@ -56,6 +114,6 @@ impl<T: Function> FunctionPointer for T {
 
 #[derive(Error, Debug, PartialEq, Clone)]
 pub enum FunctionPointerError {
-    #[error("Bad function name -  expected: {0:?}")]
-    BadFunctionName(&'static str, &'static str),
+    #[error("Bad address: {0}")]
+    BadAddress(GuestAddr),
 }

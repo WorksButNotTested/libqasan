@@ -13,6 +13,7 @@ CHANNEL = "1.84.0"
 [env.arm_dev]
 TARGET = "armv7-unknown-linux-gnueabi"
 PROFILE = "dev"
+FULL_PROFILE = "arm_dev"
 ASAN_CC = "arm-linux-gnueabi-gcc"
 ASAN_STRIP = "arm-linux-gnueabi-strip"
 ASAN_CFLAGS = "-no-pie -fno-stack-protector -marm"
@@ -22,6 +23,7 @@ CHANNEL = "1.84.0"
 [env.arm_release]
 TARGET = "armv7-unknown-linux-gnueabi"
 PROFILE = "release"
+FULL_PROFILE = "arm_release"
 ASAN_CC = "arm-linux-gnueabi-gcc"
 ASAN_STRIP = "arm-linux-gnueabi-strip"
 ASAN_CFLAGS = "-no-pie -fno-stack-protector -marm"
@@ -31,6 +33,7 @@ CHANNEL = "1.84.0"
 [env.aarch64_dev]
 TARGET = "aarch64-unknown-linux-gnu"
 PROFILE = "dev"
+FULL_PROFILE = "aarch64_dev"
 ASAN_CC = "aarch64-linux-gnu-gcc"
 ASAN_STRIP = "aarch64-linux-gnu-strip"
 ASAN_CFLAGS = "-no-pie -fno-stack-protector"
@@ -40,6 +43,7 @@ CHANNEL = "1.84.0"
 [env.aarch64_release]
 TARGET = "aarch64-unknown-linux-gnu"
 PROFILE = "release"
+FULL_PROFILE = "aarch64_release"
 ASAN_CC = "aarch64-linux-gnu-gcc"
 ASAN_STRIP = "aarch64-linux-gnu-strip"
 ASAN_CFLAGS = "-no-pie -fno-stack-protector"
@@ -49,6 +53,7 @@ CHANNEL = "1.84.0"
 [env.x64_dev]
 TARGET = "x86_64-unknown-linux-gnu"
 PROFILE = "dev"
+FULL_PROFILE = "x64_dev"
 ASAN_CC = "x86_64-linux-gnu-gcc"
 ASAN_STRIP = "x86_64-linux-gnu-strip"
 ASAN_CFLAGS = "-m64 -no-pie -Wl,--no-relax -mcmodel=large -fno-stack-protector"
@@ -58,6 +63,7 @@ CHANNEL = "1.84.0"
 [env.x64_release]
 TARGET = "x86_64-unknown-linux-gnu"
 PROFILE = "release"
+FULL_PROFILE = "x64_release"
 ASAN_CC = "x86_64-linux-gnu-gcc"
 ASAN_STRIP = "x86_64-linux-gnu-strip"
 ASAN_CFLAGS = "-m64 -no-pie -Wl,--no-relax -mcmodel=large -fno-stack-protector"
@@ -67,6 +73,7 @@ CHANNEL = "1.84.0"
 [env.i686_dev]
 TARGET = "i686-unknown-linux-gnu"
 PROFILE = "dev"
+FULL_PROFILE = "i686_dev"
 ASAN_CC = "i686-linux-gnu-gcc"
 ASAN_STRIP = "i686-linux-gnu-strip"
 ASAN_CFLAGS = "-m32 -no-pie -fno-stack-protector"
@@ -76,6 +83,7 @@ CHANNEL = "1.84.0"
 [env.i686_release]
 TARGET = "i686-unknown-linux-gnu"
 PROFILE = "release"
+FULL_PROFILE = "i686_release"
 ASAN_CC = "i686-linux-gnu-gcc"
 ASAN_STRIP = "i686-linux-gnu-strip"
 ASAN_CFLAGS = "-m32 -no-pie -fno-stack-protector"
@@ -85,6 +93,7 @@ CHANNEL = "1.84.0"
 [env.powerpc_dev]
 TARGET = "powerpc-unknown-linux-gnu"
 PROFILE = "dev"
+FULL_PROFILE = "powerpc_dev"
 ASAN_CC = "powerpc-linux-gnu-gcc"
 ASAN_STRIP = "powerpc-linux-gnu-strip"
 ASAN_CFLAGS = "-no-pie -fno-stack-protector"
@@ -94,6 +103,7 @@ CHANNEL = "nightly"
 [env.powerpc_release]
 TARGET = "powerpc-unknown-linux-gnu"
 PROFILE = "release"
+FULL_PROFILE = "powerpc_release"
 ASAN_CC = "powerpc-linux-gnu-gcc"
 ASAN_STRIP = "powerpc-linux-gnu-strip"
 ASAN_CFLAGS = "-no-pie -fno-stack-protector"
@@ -112,15 +122,10 @@ args = ["build", "--profile", "${PROFILE}", "--target", "${TARGET}"]
 [tasks.libc]
 toolchain = "${CHANNEL}"
 command = "cargo"
-args = ["make", "--cwd", "../dummy_libc", "--profile", "${PROFILE}"]
-
-[tasks.copy-libc]
-dependencies = ["libc"]
-command = "cp"
-args = ["${OUT_DIR}/libc.so", "${OUT_DIR}/libc.so.6"]
+args = ["make", "--cwd", "../dummy_libc", "--profile", "${FULL_PROFILE}"]
 
 [tasks.link]
-dependencies = ["compile", "copy-libc"]
+dependencies = ["compile", "libc"]
 command = "${ASAN_CC}"
 args = [
   "@@split(ASAN_CFLAGS, )",
@@ -137,6 +142,8 @@ args = [
   "aligned_alloc",
   "-u",
   "calloc",
+  "-u",
+  "free",
   "-u",
   "malloc",
   "-u",
@@ -165,7 +172,7 @@ args = [
   "${OUT_DIR}/libgasan.a",
   "-L",
   "${OUT_DIR}",
-  "-l:libc.so.6",
+  "-ldummy_libc",
 ]
 
 [tasks.strip]

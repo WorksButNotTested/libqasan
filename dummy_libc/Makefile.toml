@@ -100,7 +100,6 @@ ASAN_CFLAGS = "-no-pie -fno-stack-protector"
 OUT_DIR = "../target/powerpc-unknown-linux-gnu/release"
 CHANNEL = "nightly"
 
-
 [tasks.default]
 alias = "strip"
 
@@ -124,20 +123,23 @@ args = [
   "-u",
   "dlerror",
   "-o",
-  "${OUT_DIR}/_libc.so",
+  "${OUT_DIR}/_libdummy_libc.so",
+  "-Wl,-hlibc.so.6",
   "-Wl,--version-script=dummy_libc.map",
   "-Wl,--gc-sections",
   "-Wl,--no-undefined",
-  "${OUT_DIR}/libc.a",
-  "-L",
-  "${OUT_DIR}",
-  "-l:libc.so",
+  "${OUT_DIR}/libdummy_libc.a",
 ]
 
 [tasks.strip]
 dependencies = ["link"]
 command = "${ASAN_STRIP}"
-args = ["--strip-unneeded", "-o", "${OUT_DIR}/libc.so", "${OUT_DIR}/_libc.so"]
+args = [
+  "--strip-unneeded",
+  "-o",
+  "${OUT_DIR}/libdummy_libc.so",
+  "${OUT_DIR}/_libdummy_libc.so",
+]
 
 [tasks.test]
 

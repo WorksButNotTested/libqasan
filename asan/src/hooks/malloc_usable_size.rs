@@ -1,5 +1,5 @@
 use {
-    crate::{asan_get_size, hooks::size_t},
+    crate::hooks::{asan_get_size, size_t},
     core::ffi::c_void,
     log::trace,
 };

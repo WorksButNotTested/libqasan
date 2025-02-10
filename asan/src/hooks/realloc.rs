@@ -1,5 +1,5 @@
 use {
-    crate::{asan_alloc, asan_dealloc, asan_load, hooks::size_t},
+    crate::hooks::{asan_alloc, asan_dealloc, asan_load, size_t},
     core::{
         ffi::c_void,
         ptr::{copy_nonoverlapping, null_mut},

@@ -8,7 +8,7 @@
 //! - A simple bump allocator allocating from a fixed memory buffer
 //! - An allocator which calls down into the original `libc` implementation of `malloc`
 
-use {crate::GuestAddr, alloc::fmt::Debug, core::alloc::GlobalAlloc, log::debug, spin::Mutex};
+use {crate::GuestAddr, alloc::fmt::Debug, core::alloc::GlobalAlloc, spin::Mutex};
 
 #[cfg(feature = "dlmalloc")]
 pub mod dlmalloc;
@@ -25,7 +25,6 @@ pub struct GlobalAllocator<A: AllocatorBackend> {
 
 unsafe impl<A: AllocatorBackend> GlobalAlloc for GlobalAllocator<A> {
     unsafe fn alloc(&self, layout: core::alloc::Layout) -> *mut u8 {
-        debug!("alloc - size: {}, align: {}", layout.size(), layout.align());
         let mut allocator = self.backend.lock();
         let addr = allocator
             .alloc(layout.size(), layout.align())
@@ -34,12 +33,6 @@ unsafe impl<A: AllocatorBackend> GlobalAlloc for GlobalAllocator<A> {
     }
 
     unsafe fn dealloc(&self, ptr: *mut u8, layout: core::alloc::Layout) {
-        debug!(
-            "dealloc - ptr: {:p}, size: {}, align: {}",
-            ptr,
-            layout.size(),
-            layout.align()
-        );
         let mut allocator = self.backend.lock();
         allocator
             .dealloc(ptr as GuestAddr, layout.size(), layout.align())

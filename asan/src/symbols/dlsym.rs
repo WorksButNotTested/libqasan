@@ -6,13 +6,10 @@
 //! - LookupTypeNext: This performs the lookup using
 //!   `dlsym(RTLD_NEXT, name)`
 use {
-    crate::{
-        symbols::{Symbol, Symbols},
-        GuestAddr,
-    },
+    crate::{symbols::Symbols, GuestAddr},
     alloc::{ffi::NulError, fmt::Debug},
     core::{
-        ffi::{c_void, CStr},
+        ffi::{c_char, c_void, CStr},
         marker::PhantomData,
     },
     libc::{dlerror, dlsym, RTLD_DEFAULT, RTLD_NEXT},
@@ -43,15 +40,19 @@ pub struct DlSymSymbols<L: LookupType> {
 impl<L: LookupType> Symbols for DlSymSymbols<L> {
     type Error = DlSymSymbolsError;
 
-    fn lookup(name: &'static str) -> Result<Symbol, Self::Error> {
-        let p_sym = unsafe { dlsym(L::HANDLE, name.as_ptr() as *const i8) };
+    #[allow(clippy::not_unsafe_ptr_arg_deref)]
+    fn lookup(name: *const c_char) -> Result<GuestAddr, Self::Error> {
+        if name.is_null() {
+            Err(DlSymSymbolsError::NullName())?;
+        }
+        let p_sym = unsafe { dlsym(L::HANDLE, name) };
         if p_sym.is_null() {
             Err(DlSymSymbolsError::FailedToFindFunction(
                 name,
                 Self::get_error(),
             ))
         } else {
-            Ok(Symbol::new(name, p_sym as GuestAddr))
+            Ok(p_sym as GuestAddr)
         }
     }
 }
@@ -89,6 +90,8 @@ impl<L: LookupType> DlSymSymbols<L> {
 pub enum DlSymSymbolsError {
     #[error("Bad function name: {0:?}")]
     BadFunctionName(#[from] NulError),
-    #[error("Failed to find function: {0}, error: {1}")]
-    FailedToFindFunction(&'static str, &'static str),
+    #[error("Failed to find function: {0:p}, error: {1}")]
+    FailedToFindFunction(*const c_char, &'static str),
+    #[error("Null name")]
+    NullName(),
 }

@@ -1,5 +1,5 @@
 use {
-    crate::{asan_alloc, hooks::size_t},
+    crate::hooks::{asan_alloc, size_t},
     core::ffi::c_void,
     log::trace,
 };

@@ -25,6 +25,7 @@ libc = { version = "0.2.169", default-features = false, optional = true }
 readonly = { version = "0.2.12", default-features = false }
 rustix = { version = "0.38.38", default-features = false, features = [
   "mm",
+  "process",
   "stdio",
 ], optional = true }
 spin = { version = "0.9.8", default-features = false, features = [

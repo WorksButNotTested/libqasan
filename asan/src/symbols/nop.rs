@@ -1,6 +1,6 @@
 use {
-    crate::symbols::{Symbol, Symbols},
-    alloc::string::{String, ToString},
+    crate::{symbols::Symbols, GuestAddr},
+    core::ffi::c_char,
     thiserror::Error,
 };
 
@@ -10,13 +10,13 @@ pub struct NopSymbols;
 impl Symbols for NopSymbols {
     type Error = NopSymbolsError;
 
-    fn lookup(name: &str) -> Result<Symbol, Self::Error> {
-        Err(NopSymbolsError::SymbolNotFound(name.to_string()))
+    fn lookup(name: *const c_char) -> Result<GuestAddr, Self::Error> {
+        Err(NopSymbolsError::SymbolNotFound(name))
     }
 }
 
 #[derive(Error, Debug, PartialEq, Clone)]
 pub enum NopSymbolsError {
-    #[error("Symbol not found: {0}")]
-    SymbolNotFound(String),
+    #[error("Symbol not found: {0:p}")]
+    SymbolNotFound(*const c_char),
 }

@@ -1,8 +1,5 @@
 use {
-    crate::{
-        asan_load,
-        hooks::{size_t, ssize_t},
-    },
+    crate::hooks::{asan_load, size_t, ssize_t},
     core::{
         ffi::{c_int, c_void},
         slice::from_raw_parts,

@@ -1,4 +1,4 @@
-use log::error;
+use {crate::nostd::die, log::error};
 
 #[cfg(target_arch = "aarch64")]
 mod aarch64;
@@ -12,5 +12,5 @@ mod powerpc;
 #[no_mangle]
 extern "C" fn _Unwind_Resume() {
     error!("_Unwind_Resume");
-    loop {}
+    die();
 }

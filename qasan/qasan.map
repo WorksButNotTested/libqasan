@@ -5,6 +5,7 @@
 
     aligned_alloc;
     calloc;
+    free;
     malloc;
     malloc_usable_size;
     memalign;

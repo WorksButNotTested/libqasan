@@ -5,7 +5,7 @@
 use {
     crate::{allocator::backend::AllocatorBackend, mmap::Mmap, GuestAddr},
     alloc::fmt::{self, Debug, Formatter},
-    core::{marker::PhantomData, ptr::null_mut},
+    core::{marker::PhantomData, mem::forget, ptr::null_mut},
     dlmalloc::{Allocator, Dlmalloc},
     log::debug,
     thiserror::Error,
@@ -24,6 +24,7 @@ unsafe impl<M: Mmap + Send> Allocator for DlmallocBackendMap<M> {
             Ok(mut map) => {
                 let slice = map.as_mut_slice();
                 let result = (slice.as_mut_ptr(), slice.len(), 0);
+                forget(map);
                 result
             }
             Err(e) => {
@@ -93,7 +94,6 @@ impl<M: Mmap + Send> AllocatorBackend for DlmallocBackend<M> {
     type Error = DlmallocBackendError;
 
     fn alloc(&mut self, size: usize, align: usize) -> Result<GuestAddr, DlmallocBackendError> {
-        debug!("alloc - size: 0x{:x}, align: 0x{:x}", size, align);
         let ptr = unsafe { self.dlmalloc.malloc(size, align) };
         if ptr.is_null() {
             Err(DlmallocBackendError::FailedToAllocate(size, align))?;
@@ -102,10 +102,6 @@ impl<M: Mmap + Send> AllocatorBackend for DlmallocBackend<M> {
     }
 
     fn dealloc(&mut self, addr: GuestAddr, size: usize, align: usize) -> Result<(), Self::Error> {
-        debug!(
-            "dealloc - addr: 0x{:x}, size: 0x{:x}, align: 0x{:x}",
-            addr, size, align
-        );
         unsafe { self.dlmalloc.free(addr as *mut u8, size, align) }
         Ok(())
     }

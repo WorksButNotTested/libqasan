@@ -114,16 +114,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5b63caa9aa9397e2d9480a9b13673856c78d8ac123288526c37d7839f2a86990"
 
 [[package]]
-name = "ctor"
-version = "0.2.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "32a2785755761f3ddc1492979ce1e48d2c00d09311c39e4466429188f3dd6501"
-dependencies = [
- "quote",
- "syn",
-]
-
-[[package]]
 name = "dlmalloc"
 version = "0.2.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -201,9 +191,9 @@ name = "gasan"
 version = "0.1.0"
 dependencies = [
  "asan",
- "ctor",
  "dummy_libc",
  "log",
+ "spin",
 ]
 
 [[package]]
@@ -333,10 +323,10 @@ name = "qasan"
 version = "0.1.0"
 dependencies = [
  "asan",
- "ctor",
  "dummy_libc",
  "libc",
  "log",
+ "spin",
 ]
 
 [[package]]
@@ -546,7 +536,6 @@ name = "zasan"
 version = "0.1.0"
 dependencies = [
  "asan",
- "ctor",
  "log",
  "rustix",
  "spin",

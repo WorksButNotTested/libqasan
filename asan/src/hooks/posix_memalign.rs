@@ -1,5 +1,8 @@
 use {
-    crate::{asan_alloc, hooks::size_t, GuestAddr},
+    crate::{
+        hooks::{asan_alloc, size_t},
+        GuestAddr,
+    },
     core::{
         ffi::{c_int, c_void},
         mem::size_of,

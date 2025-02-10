@@ -5,7 +5,10 @@ use {
     crate::{
         host::{Host, HostAction},
         shadow::PoisonType,
-        symbols::{Function, FunctionPointer, FunctionPointerError, Symbols},
+        symbols::{
+            AtomicGuestAddr, Function, FunctionPointer, FunctionPointerError, Symbols,
+            SymbolsLookupStr,
+        },
         GuestAddr,
     },
     core::{ffi::c_long, marker::PhantomData},
@@ -127,12 +130,16 @@ impl<S: Symbols> Host for LibcHost<S> {
     }
 }
 
+static SYSCALL_ADDR: AtomicGuestAddr = AtomicGuestAddr::new();
+
 impl<S: Symbols> LibcHost<S> {
     const SYSCALL_NO: c_long = 0xa2a4;
 
     fn get_syscall() -> Result<<FunctionSyscall as Function>::Func, LibcHostError<S>> {
-        let sym = S::lookup("syscall").map_err(|e| LibcHostError::FailedToFindSymbol(e))?;
-        let f = FunctionSyscall::as_ptr(sym).map_err(|e| LibcHostError::InvalidPointerType(e))?;
+        let addr = SYSCALL_ADDR.try_get_or_insert_with(|| {
+            S::lookup_str(FunctionSyscall::NAME).map_err(|e| LibcHostError::FailedToFindSymbol(e))
+        })?;
+        let f = FunctionSyscall::as_ptr(addr).map_err(|e| LibcHostError::InvalidPointerType(e))?;
         Ok(f)
     }
 }
