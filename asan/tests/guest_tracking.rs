@@ -1,4 +1,5 @@
 #[cfg(test)]
+#[cfg(feature = "guest")]
 mod tests {
 
     use {
@@ -26,14 +27,12 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_max() {
         let mut tracking = get_tracking();
         assert_eq!(tracking.alloc(GuestAddr::MAX, 1), Ok(()));
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_out_of_bounds() {
         let mut tracking = get_tracking();
         assert_eq!(
@@ -43,7 +42,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_track_identical() {
         let mut tracking = get_tracking();
         assert_eq!(tracking.alloc(0x1000, 0x1000), Ok(()));
@@ -56,7 +54,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_track_adjacent_after() {
         let mut tracking = get_tracking();
         assert_eq!(tracking.alloc(0x1000, 0x1000), Ok(()));
@@ -64,7 +61,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_track_adjacent_before() {
         let mut tracking = get_tracking();
         assert_eq!(tracking.alloc(0x1000, 0x1000), Ok(()));
@@ -72,7 +68,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_track_overlapping_start() {
         let mut tracking = get_tracking();
         assert_eq!(tracking.alloc(0x1000, 0x1000), Ok(()));
@@ -85,7 +80,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_track_overlapping_end() {
         let mut tracking = get_tracking();
         assert_eq!(tracking.alloc(0x1000, 0x1000), Ok(()));
@@ -98,7 +92,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     #[cfg(target_pointer_width = "64")]
     fn test_example_1() {
         let mut tracking = get_tracking();

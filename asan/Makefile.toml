@@ -67,14 +67,7 @@ args = ["build", "--profile", "${PROFILE}", "--target", "${TARGET}"]
 [tasks.test]
 toolchain = "${CHANNEL}"
 command = "cargo"
-args = [
-  "test",
-  "--target",
-  "${TARGET}",
-  "--",
-  "--nocapture",
-  "--test-threads=1",
-]
+args = ["nextest", "run", "--target", "${TARGET}"]
 
 [tasks.test-platform]
 command = "cargo"

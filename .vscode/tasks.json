@@ -488,7 +488,7 @@
         {
             "label": "Fix",
             "type": "shell",
-            "command": "cargo fix --offline --allow-dirty",
+            "command": "cargo fix --allow-dirty",
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}",
@@ -502,7 +502,7 @@
         {
             "label": "Clippy",
             "type": "shell",
-            "command": "cargo clippy --offline",
+            "command": "cargo clippy",
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}",

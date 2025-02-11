@@ -18,7 +18,6 @@ pub struct DlmallocBackendMap<M: Mmap> {
 
 unsafe impl<M: Mmap + Send> Allocator for DlmallocBackendMap<M> {
     fn alloc(&self, size: usize) -> (*mut u8, usize, u32) {
-        debug!("alloc - size: 0x{:x}", size);
         let map = M::map(size);
         match map {
             Ok(mut map) => {
@@ -34,39 +33,27 @@ unsafe impl<M: Mmap + Send> Allocator for DlmallocBackendMap<M> {
         }
     }
 
-    fn remap(&self, ptr: *mut u8, oldsize: usize, newsize: usize, can_move: bool) -> *mut u8 {
-        debug!(
-            "remap - ptr: 0x{:p}, oldsize: 0x{:x}, newsize: 0x{:x}, can_move: {}",
-            ptr, oldsize, newsize, can_move
-        );
+    fn remap(&self, _ptr: *mut u8, _oldsize: usize, _newsize: usize, _can_move: bool) -> *mut u8 {
         null_mut()
     }
 
-    fn free_part(&self, ptr: *mut u8, oldsize: usize, newsize: usize) -> bool {
-        debug!(
-            "free_part - ptr: 0x{:p}, oldsize: 0x{:x}, newsize: 0x{:x}",
-            ptr, oldsize, newsize
-        );
+    fn free_part(&self, _ptr: *mut u8, _oldsize: usize, _newsize: usize) -> bool {
         false
     }
 
-    fn free(&self, ptr: *mut u8, size: usize) -> bool {
-        debug!("free - ptr: 0x{:p}, size: 0x{:x}", ptr, size);
+    fn free(&self, _ptr: *mut u8, _size: usize) -> bool {
         false
     }
 
-    fn can_release_part(&self, flags: u32) -> bool {
-        debug!("can_release_part - flags: 0x{:x}", flags);
+    fn can_release_part(&self, _flags: u32) -> bool {
         false
     }
 
     fn allocates_zeros(&self) -> bool {
-        debug!("allocates_zeros");
         true
     }
 
     fn page_size(&self) -> usize {
-        debug!("page_size");
         self.page_size
     }
 }

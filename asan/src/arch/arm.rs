@@ -1,4 +1,4 @@
-use {log::error, crate::nostd::die};
+use {crate::nostd::die, log::error};
 
 #[no_mangle]
 extern "C" fn __aeabi_unwind_cpp_pr0() {

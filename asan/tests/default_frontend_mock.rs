@@ -1,4 +1,5 @@
 #[cfg(test)]
+#[cfg(all(feature = "linux"))]
 mod tests {
 
     use {
@@ -64,7 +65,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(all(feature = "linux"))]
     fn test_allocate_is_poisoned() {
         let mut frontend = frontend();
 

@@ -1,7 +1,7 @@
 #[cfg(test)]
+#[cfg(feature = "guest")]
 mod tests {
     use asan::shadow::guest::DefaultShadowLayout;
-    #[cfg(feature = "guest")]
     use asan::{mmap::Mmap, shadow::guest::GuestShadow};
 
     #[derive(Ord, PartialOrd, PartialEq, Eq, Debug)]
@@ -33,6 +33,14 @@ mod tests {
         fn as_mut_slice(&mut self) -> &mut [u8] {
             unimplemented!()
         }
+
+        fn huge_pages(_addr: asan::GuestAddr, _len: usize) -> Result<(), Self::Error> {
+            unimplemented!()
+        }
+
+        fn dont_dump(_addr: asan::GuestAddr, _len: usize) -> Result<(), Self::Error> {
+            unimplemented!()
+        }
     }
 
     #[derive(Debug)]
@@ -41,7 +49,6 @@ mod tests {
     type GS = GuestShadow<DummyMmap, DefaultShadowLayout>;
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_low_mem() {
         assert!(GS::is_low_memory(GS::LOW_MEM_OFFSET, 1));
         assert!(GS::is_low_memory(GS::LOW_MEM_OFFSET, GS::LOW_MEM_SIZE));
@@ -63,7 +70,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_low_shadow() {
         assert!(!GS::is_low_memory(GS::LOW_SHADOW_OFFSET, 1));
         assert!(!GS::is_low_memory(
@@ -85,7 +91,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_high_shadow() {
         assert!(!GS::is_low_memory(GS::HIGH_SHADOW_OFFSET, 1));
         assert!(!GS::is_low_memory(
@@ -107,7 +112,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_high_mem() {
         assert!(GS::is_high_memory(GS::HIGH_MEM_OFFSET, 1));
         assert!(GS::is_high_memory(GS::HIGH_MEM_OFFSET, GS::HIGH_MEM_SIZE));

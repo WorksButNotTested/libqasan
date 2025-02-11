@@ -1,15 +1,19 @@
 use {
     crate::{
-        hooks::{asan_alloc, size_t},
+        hooks::{asan_alloc, asan_panic, size_t},
         GuestAddr,
     },
-    core::{ffi::c_void, mem::size_of, ptr::null_mut},
+    core::{
+        ffi::{c_char, c_void},
+        mem::size_of,
+    },
     log::trace,
 };
 
 /// # Safety
 /// See man pages
 #[no_mangle]
+#[cfg_attr(feature = "test", export_name = "patch_aligned_alloc")]
 pub unsafe extern "C" fn aligned_alloc(alignment: size_t, size: size_t) -> *mut c_void {
     trace!(
         "aligned_alloc - alignment: {:#x}, size: {:#x}",
@@ -21,8 +25,17 @@ pub unsafe extern "C" fn aligned_alloc(alignment: size_t, size: size_t) -> *mut 
         n != 0 && (n & (n - 1)) == 0
     }
 
-    if size % size_of::<GuestAddr>() != 0 || !is_power_of_two(alignment) {
-        null_mut()
+    if alignment % size_of::<GuestAddr>() != 0 {
+        asan_panic(
+            format!(
+                "aligned_alloc - alignment is not a multiple of {}\0",
+                size_of::<GuestAddr>()
+            )
+            .as_str()
+            .as_ptr() as *const c_char,
+        );
+    } else if !is_power_of_two(alignment) {
+        asan_panic(c"aligned_alloc - alignment is not a power of two".as_ptr() as *const c_char);
     } else {
         asan_alloc(size, alignment)
     }

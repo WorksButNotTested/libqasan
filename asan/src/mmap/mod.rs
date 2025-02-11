@@ -61,6 +61,8 @@ pub trait Mmap: Sized + Ord + Debug + Send {
     fn map(len: usize) -> Result<Self, Self::Error>;
     fn map_at(addr: GuestAddr, len: usize) -> Result<Self, Self::Error>;
     fn protect(addr: GuestAddr, len: usize, prot: MmapProt) -> Result<(), Self::Error>;
+    fn huge_pages(addr: GuestAddr, len: usize) -> Result<(), Self::Error>;
+    fn dont_dump(addr: GuestAddr, len: usize) -> Result<(), Self::Error>;
     fn as_slice(&self) -> &[u8];
     fn as_mut_slice(&mut self) -> &mut [u8];
 }

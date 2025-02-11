@@ -23,6 +23,11 @@ RUN apt-get update && \
     gcc-aarch64-linux-gnu \
     gcc-powerpc-linux-gnu \
     gcc-i686-linux-gnu \
+    python3 \
+    python3-pip \
+    ninja-build \
+    libglib2.0-dev \
+    llvm-18 \
     libc6-dev:i386 \
     libgcc-13-dev:i386
 
@@ -48,3 +53,7 @@ RUN cargo binstall cargo-make
 RUN cargo binstall -y cargo-fuzz
 
 RUN cargo binstall -y taplo-cli
+
+ENV LLVM_CONFIG=llvm-config-18
+
+RUN cargo binstall -y cargo-nextest

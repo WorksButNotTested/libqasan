@@ -195,6 +195,18 @@ impl<B: AllocatorBackend, S: Shadow, T: Tracking> DefaultFrontend<B, S, T> {
         &self.shadow
     }
 
+    pub fn shadow_mut(&mut self) -> &mut S {
+        &mut self.shadow
+    }
+
+    pub fn tracking(&self) -> &T {
+        &self.tracking
+    }
+
+    pub fn tracking_mut(&mut self) -> &mut T {
+        &mut self.tracking
+    }
+
     pub fn backend_mut(&mut self) -> &mut B {
         &mut self.backend
     }

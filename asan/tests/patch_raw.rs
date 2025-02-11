@@ -1,4 +1,5 @@
 #[cfg(test)]
+#[cfg(feature = "libc")]
 mod tests {
     use {
         asan::{
@@ -32,7 +33,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "libc")]
     fn test_patch() {
         let ret1 = test1(1, 2, 3, 4, 5, 6);
         assert_eq!(ret1, 0xdeadface);

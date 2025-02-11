@@ -16,7 +16,9 @@ use {
     log::trace,
     rustix::{
         io::Errno,
-        mm::{mmap_anonymous, mprotect, munmap, MapFlags, MprotectFlags, ProtFlags},
+        mm::{
+            madvise, mmap_anonymous, mprotect, munmap, Advice, MapFlags, MprotectFlags, ProtFlags,
+        },
     },
     thiserror::Error,
 };
@@ -81,6 +83,22 @@ impl Mmap for LinuxMmap {
                 .map_err(|errno| LinuxMapError::FailedToMprotect(addr, len, prot, errno))
         }
     }
+
+    fn huge_pages(addr: GuestAddr, len: usize) -> Result<(), Self::Error> {
+        trace!("huge_pages - addr: {:#x}, len: {:#x}", addr, len);
+        unsafe {
+            madvise(addr as *mut c_void, len, Advice::LinuxHugepage)
+                .map_err(|errno| LinuxMapError::FailedToMadviseHugePage(addr, len, errno))
+        }
+    }
+
+    fn dont_dump(addr: GuestAddr, len: usize) -> Result<(), Self::Error> {
+        trace!("dont_dump - addr: {:#x}, len: {:#x}", addr, len);
+        unsafe {
+            madvise(addr as *mut c_void, len, Advice::LinuxDontDump)
+                .map_err(|errno| LinuxMapError::FailedToMadviseDontDump(addr, len, errno))
+        }
+    }
 }
 
 impl From<&MmapProt> for MprotectFlags {
@@ -116,4 +134,8 @@ pub enum LinuxMapError {
     FailedToMapAt(GuestAddr, usize, Errno),
     #[error("Failed to mprotect - addr: {0}, len: {1}, prot: {2:?}, errno: {3}")]
     FailedToMprotect(GuestAddr, usize, MmapProt, Errno),
+    #[error("Failed to madvise HUGEPAGE - addr: {0}, len: {1}, errno: {2}")]
+    FailedToMadviseHugePage(GuestAddr, usize, Errno),
+    #[error("Failed to madvise DONTDUMP - addr: {0}, len: {1}, errno: {2}")]
+    FailedToMadviseDontDump(GuestAddr, usize, Errno),
 }

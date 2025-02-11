@@ -1,14 +1,17 @@
 {
   global:
-    gasan_allocate;
-    gasan_deallocate;
-
     aligned_alloc;
+    atoi;
+    atol;
+    atoll;
     calloc;
     free;
     malloc;
     malloc_usable_size;
     memalign;
+    memset;
+    mmap;
+    munmap;
     posix_memalign;
     pvalloc;
     read;

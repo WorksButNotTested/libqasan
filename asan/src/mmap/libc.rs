@@ -19,7 +19,9 @@ use {
         ptr::null_mut,
         slice::{from_raw_parts, from_raw_parts_mut},
     },
-    libc::{off_t, size_t, PROT_EXEC, PROT_NONE, PROT_READ, PROT_WRITE},
+    libc::{
+        off_t, size_t, MADV_DONTDUMP, MADV_HUGEPAGE, PROT_EXEC, PROT_NONE, PROT_READ, PROT_WRITE,
+    },
     log::trace,
     thiserror::Error,
 };
@@ -58,6 +60,14 @@ impl Function for FunctionErrnoLocation {
 }
 
 #[derive(Debug)]
+struct FunctionMadvise;
+
+impl Function for FunctionMadvise {
+    type Func = unsafe extern "C" fn(*mut c_void, size_t, c_int) -> c_int;
+    const NAME: &'static str = "madvise\0";
+}
+
+#[derive(Debug)]
 pub struct LibcMmap<S: Symbols> {
     addr: GuestAddr,
     len: usize,
@@ -88,6 +98,7 @@ static MMAP_ADDR: AtomicGuestAddr = AtomicGuestAddr::new();
 static MUNMAP_ADDR: AtomicGuestAddr = AtomicGuestAddr::new();
 static MPROTECT_ADDR: AtomicGuestAddr = AtomicGuestAddr::new();
 static GET_ERRNO_LOCATION_ADDR: AtomicGuestAddr = AtomicGuestAddr::new();
+static MADVISE_ADDR: AtomicGuestAddr = AtomicGuestAddr::new();
 
 impl<S: Symbols> LibcMmap<S> {
     fn get_mmap() -> Result<<FunctionMmap as Function>::Func, LibcMapError<S>> {
@@ -124,6 +135,14 @@ impl<S: Symbols> LibcMmap<S> {
         Ok(f)
     }
 
+    fn get_madvise() -> Result<<FunctionMadvise as Function>::Func, LibcMapError<S>> {
+        let addr = MADVISE_ADDR.try_get_or_insert_with(|| {
+            S::lookup_str(FunctionMadvise::NAME).map_err(|e| LibcMapError::FailedToFindSymbol(e))
+        })?;
+        let f = FunctionMadvise::as_ptr(addr).map_err(|e| LibcMapError::InvalidPointerType(e))?;
+        Ok(f)
+    }
+
     fn errno() -> Result<c_int, LibcMapError<S>> {
         let errno_location = Self::get_errno_location()?;
         let errno = unsafe { *errno_location() };
@@ -151,7 +170,6 @@ impl<S: Symbols> Mmap for LibcMmap<S> {
             Err(LibcMapError::FailedToMap(len, errno))
         } else {
             let addr = map as GuestAddr;
-            trace!("Mapped: 0x{:x}-0x{:x}", addr, addr + len);
             Ok(LibcMmap {
                 addr,
                 len,
@@ -213,6 +231,28 @@ impl<S: Symbols> Mmap for LibcMmap<S> {
     fn as_mut_slice(&mut self) -> &mut [u8] {
         unsafe { from_raw_parts_mut(self.addr as *mut u8, self.len) }
     }
+
+    fn huge_pages(addr: GuestAddr, len: usize) -> Result<(), Self::Error> {
+        trace!("huge_pages - addr: {:#x}, len: {:#x}", addr, len);
+        let madvise = Self::get_madvise()?;
+        let ret = unsafe { madvise(addr as *mut c_void, len, MADV_HUGEPAGE) };
+        if ret != 0 {
+            let errno = Self::errno()?;
+            Err(LibcMapError::FailedToMadviseHugePage(addr, len, errno))?;
+        }
+        Ok(())
+    }
+
+    fn dont_dump(addr: GuestAddr, len: usize) -> Result<(), Self::Error> {
+        trace!("dont_dump - addr: {:#x}, len: {:#x}", addr, len);
+        let madvise = Self::get_madvise()?;
+        let ret = unsafe { madvise(addr as *mut c_void, len, MADV_DONTDUMP) };
+        if ret != 0 {
+            let errno = Self::errno()?;
+            Err(LibcMapError::FailedToMadviseDontDump(addr, len, errno))?;
+        }
+        Ok(())
+    }
 }
 
 impl From<&MmapProt> for c_int {
@@ -256,4 +296,8 @@ pub enum LibcMapError<S: Symbols> {
     FailedToMprotect(GuestAddr, usize, MmapProt, c_int),
     #[error("Invalid pointer type: {0:?}")]
     InvalidPointerType(FunctionPointerError),
+    #[error("Failed to madvise HUGEPAGE - addr: {0}, len: {1}, errno: {2}")]
+    FailedToMadviseHugePage(GuestAddr, usize, c_int),
+    #[error("Failed to madvise DONTDUMP - addr: {0}, len: {1}, errno: {2}")]
+    FailedToMadviseDontDump(GuestAddr, usize, c_int),
 }

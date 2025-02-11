@@ -1,5 +1,5 @@
 [workspace]
-members = ["asan", "gasan", "qasan", "zasan", "fuzz", "dummy_libc"]
+members = ["asan", "gasan", "qasan", "zasan", "fuzz", "dummy_libc", "runner"]
 resolver = "2"
 
 [profile.dev]

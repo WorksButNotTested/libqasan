@@ -1,4 +1,5 @@
 #[cfg(test)]
+#[cfg(feature = "guest")]
 mod tests {
     use {
         asan::{
@@ -31,7 +32,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_init() {
         get_shadow();
     }
@@ -48,7 +48,6 @@ mod tests {
     // [0x20000000, 0x23ffffff] 	LowShadow
     // [0x00000000, 0x1fffffff] 	LowMem
     #[test]
-    #[cfg(feature = "guest")]
     fn test_posion_bottom_of_low_mem() {
         let mut shadow = get_shadow();
         shadow
@@ -57,7 +56,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_posion_top_of_low_mem() {
         let mut shadow = get_shadow();
         shadow
@@ -66,7 +64,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_posion_bottom_of_low_shadow() {
         let mut shadow = get_shadow();
         let result = shadow.poison(GS::LOW_SHADOW_OFFSET, 0x8, PoisonType::AsanUser);
@@ -79,7 +76,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_posion_top_of_low_shadow() {
         let mut shadow = get_shadow();
         const ADDR: GuestAddr = GS::LOW_SHADOW_OFFSET + GS::LOW_SHADOW_SIZE - 8;
@@ -88,7 +84,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_posion_bottom_of_high_shadow() {
         let mut shadow = get_shadow();
         let result = shadow.poison(GS::HIGH_SHADOW_OFFSET, 0x8, PoisonType::AsanUser);
@@ -101,7 +96,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_posion_top_of_high_shadow() {
         let mut shadow = get_shadow();
         const ADDR: GuestAddr = GS::HIGH_SHADOW_OFFSET + GS::HIGH_SHADOW_SIZE - 8;
@@ -110,7 +104,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_posion_bottom_of_high_mem() {
         let mut shadow = get_shadow();
         shadow
@@ -119,7 +112,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_posion_top_of_high_mem() {
         let mut shadow = get_shadow();
         shadow
@@ -128,7 +120,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_unaligned_end() {
         let mut shadow = get_shadow();
         let result = shadow.poison(0, 7, PoisonType::AsanUser);
@@ -136,56 +127,48 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_aligned_one() {
         let mut shadow = get_shadow();
         shadow.poison(7, 1, PoisonType::AsanUser).unwrap();
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_aligned_two() {
         let mut shadow = get_shadow();
         shadow.poison(6, 2, PoisonType::AsanUser).unwrap();
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_aligned_three() {
         let mut shadow = get_shadow();
         shadow.poison(5, 3, PoisonType::AsanUser).unwrap();
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_aligned_four() {
         let mut shadow = get_shadow();
         shadow.poison(4, 4, PoisonType::AsanUser).unwrap();
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_aligned_five() {
         let mut shadow = get_shadow();
         shadow.poison(3, 5, PoisonType::AsanUser).unwrap();
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_aligned_six() {
         let mut shadow = get_shadow();
         shadow.poison(2, 6, PoisonType::AsanUser).unwrap();
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_aligned_seven() {
         let mut shadow = get_shadow();
         shadow.poison(1, 7, PoisonType::AsanUser).unwrap();
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_overflow_address_range() {
         let mut shadow = get_shadow();
         let start = usize::MAX - (ALIGN - 1);

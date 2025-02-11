@@ -23,11 +23,19 @@ impl Function for FunctionKill {
     const NAME: &'static str = "kill\0";
 }
 
+#[derive(Debug)]
+struct FunctionExit;
+
+impl Function for FunctionExit {
+    type Func = unsafe extern "C" fn(c_int) -> !;
+    const NAME: &'static str = "_exit\0";
+}
+
 extern "C" {
     fn asan_sym(name: *const c_char) -> GuestAddr;
 }
 
-pub fn die() -> ! {
+pub fn abort() -> ! {
     let getpid_addr = unsafe { asan_sym(FunctionGetpid::NAME.as_ptr() as *const c_char) };
     let fn_getpid = FunctionGetpid::as_ptr(getpid_addr).unwrap();
 
@@ -37,4 +45,10 @@ pub fn die() -> ! {
     let pid = unsafe { fn_getpid() };
     unsafe { fn_kill(pid, SIGABRT) };
     unreachable!();
+}
+
+pub fn exit(status: c_int) -> ! {
+    let exit_addr = unsafe { asan_sym(FunctionExit::NAME.as_ptr() as *const c_char) };
+    let fn_exit = FunctionExit::as_ptr(exit_addr).unwrap();
+    unsafe { fn_exit(status) };
 }

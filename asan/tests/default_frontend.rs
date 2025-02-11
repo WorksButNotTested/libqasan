@@ -1,4 +1,5 @@
 #[cfg(test)]
+#[cfg(all(feature = "linux", feature = "dlmalloc"))]
 mod tests {
 
     use {
@@ -47,7 +48,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(all(feature = "linux", feature = "dlmalloc"))]
     fn test_allocate() {
         let mut frontend = frontend();
         let buf = frontend.alloc(16, 8).unwrap();
@@ -55,7 +55,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(all(feature = "linux", feature = "dlmalloc"))]
     fn test_allocate_is_poisoned() {
         let mut frontend = frontend();
         let len = 16;

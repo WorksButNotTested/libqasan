@@ -1,13 +1,9 @@
 use core::ffi::{c_int, c_void};
 
+#[allow(non_camel_case_types)]
 type pid_t = i32;
 
 // Rustix does not currently implement these necessary symbols for powerpc.
-#[no_mangle]
-pub unsafe extern "C" fn munmap(_ptr: *mut c_void, _len: usize) -> c_int {
-    unimplemented!();
-}
-
 #[no_mangle]
 pub unsafe extern "C" fn mmap64(
     _addr: *mut c_void,
@@ -26,6 +22,6 @@ pub unsafe extern "C" fn __errno_location() -> *mut c_int {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn kill(pid: pid_t, sig: c_int) -> c_int {
+pub unsafe extern "C" fn kill(_pid: pid_t, _sig: c_int) -> c_int {
     unimplemented!();
 }

@@ -295,20 +295,27 @@ impl<M: Mmap, L: ShadowLayout> GuestShadow<M, L> {
             Self::LOW_SHADOW_OFFSET,
             Self::LOW_SHADOW_OFFSET + Self::LOW_SHADOW_SIZE
         );
-        let lo = M::map_at(Self::LOW_SHADOW_OFFSET, Self::LOW_SHADOW_SIZE)
+        let lo = Self::map_shadow(Self::LOW_SHADOW_OFFSET, Self::LOW_SHADOW_SIZE)
             .map_err(|e| GuestShadowError::MmapError(e))?;
         trace!(
             "Mapping high shadow: 0x{:x}-0x{:x}",
             Self::HIGH_SHADOW_OFFSET,
             Self::HIGH_SHADOW_OFFSET + Self::HIGH_SHADOW_SIZE
         );
-        let hi = M::map_at(Self::HIGH_SHADOW_OFFSET, Self::HIGH_SHADOW_SIZE)
+        let hi = Self::map_shadow(Self::HIGH_SHADOW_OFFSET, Self::HIGH_SHADOW_SIZE)
             .map_err(|e| GuestShadowError::MmapError(e))?;
         Ok(GuestShadow {
             lo,
             hi,
             _phantom: PhantomData,
         })
+    }
+
+    fn map_shadow(addr: GuestAddr, size: usize) -> Result<M, M::Error> {
+        let m = M::map_at(addr, size)?;
+        M::huge_pages(addr, size)?;
+        M::dont_dump(addr, size)?;
+        Ok(m)
     }
 
     pub fn align_down(addr: GuestAddr) -> GuestAddr {

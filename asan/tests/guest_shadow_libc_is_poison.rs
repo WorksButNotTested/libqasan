@@ -1,4 +1,5 @@
 #[cfg(test)]
+#[cfg(feature = "guest")]
 mod tests {
     use {
         asan::{
@@ -31,7 +32,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_init() {
         get_shadow();
     }
@@ -48,7 +48,6 @@ mod tests {
     // [0x20000000, 0x23ffffff] 	LowShadow
     // [0x00000000, 0x1fffffff] 	LowMem
     #[test]
-    #[cfg(feature = "guest")]
     fn test_is_posion_bottom_of_low_mem() {
         let shadow = get_shadow();
         let result = shadow.is_poison(GS::LOW_MEM_OFFSET, 0x8);
@@ -56,7 +55,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_is_posion_top_of_low_mem() {
         let shadow = get_shadow();
         let result = shadow.is_poison(GS::LOW_MEM_LIMIT - 0x7, 0x8);
@@ -64,7 +62,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_is_posion_bottom_of_low_shadow() {
         let shadow = get_shadow();
         let result = shadow.is_poison(GS::LOW_SHADOW_OFFSET, 0x8);
@@ -77,7 +74,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_is_posion_top_of_low_shadow() {
         use asan::GuestAddr;
 
@@ -88,7 +84,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_is_posion_bottom_of_high_shadow() {
         let shadow = get_shadow();
         let result = shadow.is_poison(GS::HIGH_SHADOW_OFFSET, 0x8);
@@ -101,7 +96,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_is_posion_top_of_high_shadow() {
         let shadow = get_shadow();
         const ADDR: GuestAddr = GS::HIGH_SHADOW_OFFSET + GS::HIGH_SHADOW_SIZE - 8;
@@ -110,7 +104,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_is_posion_bottom_of_high_mem() {
         let shadow = get_shadow();
         let result = shadow.is_poison(GS::HIGH_MEM_OFFSET, 0x8);
@@ -118,7 +111,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_is_posion_top_of_high_mem() {
         let shadow = get_shadow();
         let result = shadow.is_poison(GS::HIGH_MEM_LIMIT - 0x7, 0x8);
@@ -126,7 +118,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_unaligned_start() {
         let shadow = get_shadow();
         let result = shadow.is_poison(7, 1);
@@ -134,7 +125,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_aligned_one() {
         let shadow = get_shadow();
         let result = shadow.is_poison(0, 1);
@@ -142,7 +132,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_aligned_two() {
         let shadow = get_shadow();
         let result = shadow.is_poison(0, 2);
@@ -150,7 +139,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_aligned_three() {
         let shadow = get_shadow();
         let result = shadow.is_poison(0, 3);
@@ -158,7 +146,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_aligned_four() {
         let shadow = get_shadow();
         let result = shadow.is_poison(0, 4);
@@ -166,7 +153,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_aligned_five() {
         let shadow = get_shadow();
         let result = shadow.is_poison(0, 5);
@@ -174,7 +160,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_aligned_six() {
         let shadow = get_shadow();
         let result = shadow.is_poison(0, 6);
@@ -182,7 +167,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_aligned_seven() {
         let shadow = get_shadow();
         let result = shadow.is_poison(0, 7);
@@ -190,7 +174,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
     fn test_overflow_address_range() {
         let shadow = get_shadow();
         let start = usize::MAX - (ALIGN - 1);

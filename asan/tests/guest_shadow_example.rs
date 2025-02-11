@@ -1,7 +1,6 @@
 #[cfg(test)]
+#[cfg(all(feature = "guest", target_pointer_width = "64"))]
 mod tests {
-    #[cfg(feature = "guest")]
-    #[cfg(target_pointer_width = "64")]
     use {
         asan::{
             mmap::libc::LibcMmap,
@@ -15,12 +14,8 @@ mod tests {
         std::sync::Mutex,
     };
 
-    #[cfg(feature = "guest")]
-    #[cfg(target_pointer_width = "64")]
     type GS = GuestShadow<LibcMmap<DlSymSymbols<LookupTypeNext>>, DefaultShadowLayout>;
 
-    #[cfg(feature = "guest")]
-    #[cfg(target_pointer_width = "64")]
     static INIT_ONCE: Lazy<Mutex<()>> = Lazy::new(|| {
         {
             env_logger::init();
@@ -28,16 +23,12 @@ mod tests {
         Mutex::new(())
     });
 
-    #[cfg(feature = "guest")]
-    #[cfg(target_pointer_width = "64")]
     fn get_shadow() -> GS {
         drop(INIT_ONCE.lock().unwrap());
         GS::new().unwrap()
     }
 
     #[test]
-    #[cfg(feature = "guest")]
-    #[cfg(target_pointer_width = "64")]
     fn test_poison_example1() {
         let mut shadow = get_shadow();
         // poison - start: 0x7fff2bffff00, len: 0x100, pioson: AsanUser
@@ -50,8 +41,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
-    #[cfg(target_pointer_width = "64")]
     fn test_poison_example2() {
         let mut shadow = get_shadow();
         // poison - start: 0x7dff13ffffff, len: 0x3b9, pioson: AsanUser
@@ -64,8 +53,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "guest")]
-    #[cfg(target_pointer_width = "64")]
     fn test_poison_example3() {
         let mut shadow = get_shadow();
         // poison - start: 0x7fffffffff00, len: 0x100, pioson: AsanUser

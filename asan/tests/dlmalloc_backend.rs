@@ -1,4 +1,5 @@
 #[cfg(test)]
+#[cfg(all(feature = "linux", feature = "dlmalloc"))]
 mod tests {
 
     use {
@@ -25,7 +26,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(all(feature = "linux", feature = "dlmalloc"))]
     fn test_allocate() {
         let mut allocator = allocator();
         let buf = allocator.alloc(16, 8).unwrap();

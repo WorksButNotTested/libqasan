@@ -38,6 +38,7 @@ impl Log for LinuxLogger {
                 record.args()
             );
             let buf = formatted.as_bytes();
+            #[allow(unused_unsafe)]
             let fd = unsafe { stdout() };
             write(fd, buf).unwrap();
         }

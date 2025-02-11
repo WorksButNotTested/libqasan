@@ -1,0 +1,117 @@
+[config]
+skip_core_tasks = true
+
+[env]
+TARGET = "x86_64-unknown-linux-gnu"
+PROFILE = "dev"
+OUT_DIR = "../target/x86_64-unknown-linux-gnu/release"
+CHANNEL = "1.84.0"
+FEATURE = "x86_64"
+
+[env.arm_dev]
+TARGET = "x86_64-unknown-linux-gnu"
+PROFILE = "dev"
+OUT_DIR = "../target/armv7-unknown-linux-gnueabi/debug"
+CHANNEL = "1.84.0"
+FEATURE = "arm"
+
+[env.arm_release]
+TARGET = "x86_64-unknown-linux-gnu"
+PROFILE = "release"
+OUT_DIR = "../target/armv7-unknown-linux-gnueabi/release"
+CHANNEL = "1.84.0"
+FEATURE = "arm"
+
+[env.aarch64_dev]
+TARGET = "x86_64-unknown-linux-gnu"
+PROFILE = "dev"
+OUT_DIR = "../target/aarch64-unknown-linux-gnu/debug"
+CHANNEL = "1.84.0"
+FEATURE = "aarch64"
+
+[env.aarch64_release]
+TARGET = "x86_64-unknown-linux-gnu"
+PROFILE = "release"
+OUT_DIR = "../target/aarch64-unknown-linux-gnu/release"
+CHANNEL = "1.84.0"
+FEATURE = "aarch64"
+
+[env.x64_dev]
+TARGET = "x86_64-unknown-linux-gnu"
+PROFILE = "dev"
+OUT_DIR = "../target/x86_64-unknown-linux-gnu/debug"
+CHANNEL = "1.84.0"
+FEATURE = "x86_64"
+
+[env.x64_release]
+TARGET = "x86_64-unknown-linux-gnu"
+PROFILE = "release"
+OUT_DIR = "../target/x86_64-unknown-linux-gnu/release"
+CHANNEL = "1.84.0"
+FEATURE = "x86_64"
+
+[env.i686_dev]
+TARGET = "x86_64-unknown-linux-gnu"
+PROFILE = "dev"
+OUT_DIR = "../target/i686-unknown-linux-gnu/debug"
+CHANNEL = "1.84.0"
+FEATURE = "i386"
+
+[env.i686_release]
+TARGET = "x86_64-unknown-linux-gnu"
+PROFILE = "release"
+OUT_DIR = "../target/i686-unknown-linux-gnu/release"
+CHANNEL = "1.84.0"
+FEATURE = "i386"
+
+[env.powerpc_dev]
+TARGET = "x86_64-unknown-linux-gnu"
+PROFILE = "dev"
+OUT_DIR = "../target/powerpc-unknown-linux-gnu/debug"
+CHANNEL = "1.84.0"
+FEATURE = "ppc"
+
+[env.powerpc_release]
+TARGET = "x86_64-unknown-linux-gnu"
+PROFILE = "release"
+OUT_DIR = "../target/powerpc-unknown-linux-gnu/release"
+CHANNEL = "1.84.0"
+FEATURE = "ppc"
+
+[tasks.default]
+alias = "compile"
+
+[tasks.compile]
+toolchain = "${CHANNEL}"
+command = "cargo"
+args = [
+  "build",
+  "--profile",
+  "${PROFILE}",
+  "--target",
+  "${TARGET}",
+  "--features",
+  "${FEATURE}",
+  "--target-dir",
+  "${OUT_DIR}",
+]
+
+[tasks.test]
+
+[tasks.test-all]
+
+[tasks.fuzz-guest-shadow-debug]
+
+[tasks.fuzz-guest-shadow-release]
+
+[tasks.fuzz-guest-tracking-debug]
+
+[tasks.fuzz-guest-tracking-release]
+
+[tasks.fuzz-default-frontend-mock-debug]
+
+[tasks.fuzz-default-frontend-mock-release]
+
+[tasks.fuzz-default-frontend-dlmalloc-debug]
+
+[tasks.fuzz-default-frontend-dlmalloc-release]

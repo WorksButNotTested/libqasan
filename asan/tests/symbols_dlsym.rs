@@ -1,4 +1,5 @@
 #[cfg(test)]
+#[cfg(feature = "libc")]
 mod tests {
     use {
         asan::{
@@ -32,7 +33,6 @@ mod tests {
     type DLSYM = DlSymSymbols<LookupTypeDefault>;
 
     #[test]
-    #[cfg(feature = "libc")]
     fn test_dlsym() {
         use asan::symbols::FunctionPointer;
 
