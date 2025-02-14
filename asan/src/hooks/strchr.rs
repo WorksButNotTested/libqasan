@@ -1,5 +1,5 @@
 use {
-    crate::hooks::asan_load,
+    crate::hooks::{asan_load, asan_panic},
     core::{
         ffi::{c_char, c_int, c_void},
         ptr::null_mut,
@@ -16,7 +16,7 @@ pub unsafe extern "C" fn strchr(cs: *const c_char, c: c_int) -> *mut c_char {
     trace!("strchr - cs: {:p}, c: {:#x}", cs, c);
 
     if cs.is_null() {
-        panic!("strchr - cs is null");
+        asan_panic(c"strchr - cs is null".as_ptr() as *const c_char);
     }
 
     let mut len = 0;

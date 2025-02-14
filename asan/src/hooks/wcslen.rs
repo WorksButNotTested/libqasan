@@ -1,6 +1,6 @@
 use {
-    crate::hooks::{asan_load, size_t, wchar_t},
-    core::ffi::c_void,
+    crate::hooks::{asan_load, asan_panic, size_t, wchar_t},
+    core::ffi::{c_char, c_void},
     log::trace,
 };
 
@@ -12,7 +12,7 @@ pub unsafe extern "C" fn wcslen(buf: *const wchar_t) -> size_t {
     trace!("wcslen - buf: {:p}", buf);
 
     if buf.is_null() {
-        panic!("wcslen - buf is null");
+        asan_panic(c"wcslen - buf is null".as_ptr() as *const c_char);
     }
 
     let mut len = 0;

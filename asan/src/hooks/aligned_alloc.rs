@@ -6,6 +6,7 @@ use {
     core::{
         ffi::{c_char, c_void},
         mem::size_of,
+        ptr::null_mut,
     },
     log::trace,
 };
@@ -27,15 +28,13 @@ pub unsafe extern "C" fn aligned_alloc(alignment: size_t, size: size_t) -> *mut 
 
     if alignment % size_of::<GuestAddr>() != 0 {
         asan_panic(
-            format!(
-                "aligned_alloc - alignment is not a multiple of {}\0",
-                size_of::<GuestAddr>()
-            )
-            .as_str()
-            .as_ptr() as *const c_char,
+            c"aligned_alloc - alignment is not a multiple of pointer size".as_ptr()
+                as *const c_char,
         );
     } else if !is_power_of_two(alignment) {
         asan_panic(c"aligned_alloc - alignment is not a power of two".as_ptr() as *const c_char);
+    } else if size == 0 {
+        null_mut()
     } else {
         asan_alloc(size, alignment)
     }

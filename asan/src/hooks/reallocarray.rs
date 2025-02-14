@@ -1,7 +1,7 @@
 use {
-    crate::hooks::{asan_alloc, asan_dealloc, asan_get_size, asan_load, size_t},
+    crate::hooks::{asan_alloc, asan_dealloc, asan_get_size, asan_load, asan_panic, size_t},
     core::{
-        ffi::c_void,
+        ffi::{c_char, c_void},
         ptr::{copy_nonoverlapping, null_mut},
     },
     log::trace,
@@ -24,14 +24,16 @@ pub unsafe extern "C" fn reallocarray(
     );
     match nmemb.checked_mul(size) {
         Some(size) => {
-            if ptr.is_null() {
+            if ptr.is_null() && size == 0 {
+                null_mut()
+            } else if ptr.is_null() {
                 asan_alloc(size, 0)
             } else if size == 0 {
                 asan_dealloc(ptr);
                 null_mut()
             } else {
                 let old_size = asan_get_size(ptr);
-                asan_load(ptr, size);
+                asan_load(ptr, old_size);
                 let q = asan_alloc(size, 0);
                 let min = old_size.min(size);
                 unsafe { copy_nonoverlapping(ptr as *const u8, q as *mut u8, min) };
@@ -39,6 +41,6 @@ pub unsafe extern "C" fn reallocarray(
                 q
             }
         }
-        None => panic!("reallocarray - size would overflow"),
+        None => asan_panic(c"reallocarray - size would overflow".as_ptr() as *const c_char),
     }
 }

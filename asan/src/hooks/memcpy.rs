@@ -1,6 +1,9 @@
 use {
-    crate::hooks::{asan_load, asan_store, size_t},
-    core::{ffi::c_void, ptr::copy_nonoverlapping},
+    crate::hooks::{asan_load, asan_panic, asan_store, size_t},
+    core::{
+        ffi::{c_char, c_void},
+        ptr::copy_nonoverlapping,
+    },
     log::trace,
 };
 
@@ -16,17 +19,17 @@ pub unsafe extern "C" fn memcpy(dest: *mut c_void, src: *const c_void, n: size_t
     }
 
     if dest.is_null() {
-        panic!("memcpy - dest is null");
+        asan_panic(c"memcpy - dest is null".as_ptr() as *const c_char);
     }
 
     if src.is_null() {
-        panic!("memcpy - src is null");
+        asan_panic(c"memcpy - src is null".as_ptr() as *const c_char);
     }
 
     let src_end = src.add(n);
     let dest_end = dest.add(n) as *const c_void;
     if src_end > dest && dest_end > src {
-        panic!("memcpy - overlap");
+        asan_panic(c"memcpy - overlap".as_ptr() as *const c_char);
     }
 
     asan_load(src, n);

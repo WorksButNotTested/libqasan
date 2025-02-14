@@ -1,5 +1,5 @@
 use {
-    crate::hooks::{asan_load, asan_store},
+    crate::hooks::{asan_load, asan_panic, asan_store},
     core::{
         ffi::{c_char, c_void},
         ptr::copy,
@@ -15,11 +15,11 @@ pub unsafe extern "C" fn strcpy(dst: *mut c_char, src: *const c_char) -> *mut c_
     trace!("strcpy - dst: {:p}, src: {:p}", dst, src);
 
     if dst.is_null() {
-        panic!("strcpy - dst is null");
+        asan_panic(c"strcpy - dst is null".as_ptr() as *const c_char);
     }
 
     if src.is_null() {
-        panic!("strcpy - src is null");
+        asan_panic(c"strcpy - src is null".as_ptr() as *const c_char);
     }
 
     let mut len = 0;

@@ -1,7 +1,7 @@
 use {
-    crate::hooks::{asan_store, size_t},
+    crate::hooks::{asan_panic, asan_store, size_t},
     core::{
-        ffi::{c_int, c_void},
+        ffi::{c_char, c_int, c_void},
         ptr::write_bytes,
     },
     log::trace,
@@ -19,7 +19,7 @@ pub unsafe extern "C" fn memset(dest: *mut c_void, c: c_int, n: size_t) -> *mut 
     }
 
     if dest.is_null() {
-        panic!("memset - dest is null");
+        asan_panic(c"memset - dest is null".as_ptr() as *const c_char);
     }
 
     asan_store(dest, n);

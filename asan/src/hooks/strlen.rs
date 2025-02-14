@@ -1,5 +1,5 @@
 use {
-    crate::hooks::{asan_load, size_t},
+    crate::hooks::{asan_load, asan_panic, size_t},
     core::ffi::{c_char, c_void},
     log::trace,
 };
@@ -12,7 +12,7 @@ pub unsafe extern "C" fn strlen(cs: *const c_char) -> size_t {
     trace!("strlen - cs: {:p}", cs);
 
     if cs.is_null() {
-        panic!("strlen - cs is null");
+        asan_panic(c"strlen - cs is null".as_ptr() as *const c_char);
     }
 
     let mut len = 0;

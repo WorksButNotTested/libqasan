@@ -1,6 +1,10 @@
 use {
-    crate::hooks::{asan_load, size_t},
-    core::{ffi::c_void, ptr::null_mut, slice::from_raw_parts},
+    crate::hooks::{asan_load, asan_panic, size_t},
+    core::{
+        ffi::{c_char, c_void},
+        ptr::null_mut,
+        slice::from_raw_parts,
+    },
     log::trace,
 };
 
@@ -31,11 +35,11 @@ pub unsafe extern "C" fn memmem(
     }
 
     if haystack.is_null() {
-        panic!("memmem - haystack is null");
+        asan_panic(c"memmem - haystack is null".as_ptr() as *const c_char);
     }
 
     if needle.is_null() {
-        panic!("memmem - needle is null");
+        asan_panic(c"memmem - needle is null".as_ptr() as *const c_char);
     }
 
     asan_load(haystack, haystacklen);

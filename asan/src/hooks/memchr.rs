@@ -1,7 +1,7 @@
 use {
-    crate::hooks::{asan_load, size_t},
+    crate::hooks::{asan_load, asan_panic, size_t},
     core::{
-        ffi::{c_int, c_void},
+        ffi::{c_char, c_int, c_void},
         ptr::null_mut,
         slice::from_raw_parts,
     },
@@ -20,7 +20,7 @@ pub unsafe extern "C" fn memchr(cx: *const c_void, c: c_int, n: size_t) -> *mut 
     }
 
     if cx.is_null() && n != 0 {
-        panic!("memchr - cx is null");
+        asan_panic(c"memchr - cx is null".as_ptr() as *const c_char);
     }
 
     asan_load(cx, n);

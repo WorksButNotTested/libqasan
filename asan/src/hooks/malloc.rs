@@ -1,6 +1,6 @@
 use {
     crate::hooks::{asan_alloc, size_t},
-    core::ffi::c_void,
+    core::{ffi::c_void, ptr::null_mut},
     log::trace,
 };
 
@@ -10,5 +10,9 @@ use {
 #[cfg_attr(feature = "test", export_name = "patch_malloc")]
 pub unsafe extern "C" fn malloc(size: size_t) -> *mut c_void {
     trace!("malloc - size: {:#x}", size);
-    asan_alloc(size, 0)
+    if size == 0 {
+        null_mut()
+    } else {
+        asan_alloc(size, 0)
+    }
 }

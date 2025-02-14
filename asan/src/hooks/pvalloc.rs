@@ -11,6 +11,11 @@ use {
 pub unsafe extern "C" fn pvalloc(size: size_t) -> *mut c_void {
     trace!("pvalloc - size: {:#x}", size);
     let page_size = asan_page_size();
-    let aligned_size = (size + page_size - 1) & (page_size - 1);
+    let aligned_size = if size == 0 {
+        page_size
+    } else {
+        (size + page_size - 1) & !(page_size - 1)
+    };
+    assert_ne!(aligned_size, 0);
     asan_alloc(aligned_size, page_size)
 }

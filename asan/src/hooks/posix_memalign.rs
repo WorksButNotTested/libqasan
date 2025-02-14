@@ -1,11 +1,12 @@
 use {
     crate::{
-        hooks::{asan_alloc, size_t},
+        hooks::{asan_alloc, asan_panic, size_t},
         GuestAddr,
     },
     core::{
-        ffi::{c_int, c_void},
+        ffi::{c_char, c_int, c_void},
         mem::size_of,
+        ptr::null_mut,
     },
     log::trace,
 };
@@ -27,7 +28,7 @@ pub unsafe extern "C" fn posix_memalign(
     );
 
     if memptr.is_null() {
-        panic!("posix_memalign - memptr is null");
+        asan_panic(c"posix_memalign - memptr is null".as_ptr() as *const c_char);
     }
 
     fn is_power_of_two(n: size_t) -> bool {
@@ -35,12 +36,14 @@ pub unsafe extern "C" fn posix_memalign(
     }
 
     if align % size_of::<GuestAddr>() != 0 {
-        panic!(
-            "posix_memalign - align is not a multiple of {}",
-            size_of::<GuestAddr>()
+        asan_panic(
+            c"posix_memalign - align is not a multiple of pointer size".as_ptr() as *const c_char,
         );
     } else if !is_power_of_two(align) {
-        panic!("posix_memalign - align is not a power of two");
+        asan_panic(c"posix_memalign - align is not a power of two".as_ptr() as *const c_char);
+    } else if size == 0 {
+        *memptr = null_mut();
+        0
     } else {
         let p = asan_alloc(size, align);
         *memptr = p;

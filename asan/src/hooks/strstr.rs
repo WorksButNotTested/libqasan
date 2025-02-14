@@ -1,5 +1,5 @@
 use {
-    crate::hooks::asan_load,
+    crate::hooks::{asan_load, asan_panic},
     core::{
         ffi::{c_char, c_void},
         ptr::null_mut,
@@ -16,11 +16,11 @@ pub unsafe extern "C" fn strstr(cs: *const c_char, ct: *const c_char) -> *mut c_
     trace!("strstr - cs: {:p}, ct: {:p}", cs, ct);
 
     if cs.is_null() {
-        panic!("strstr - cs is null");
+        asan_panic(c"strstr - cs is null".as_ptr() as *const c_char);
     }
 
     if ct.is_null() {
-        panic!("strstr - ct is null");
+        asan_panic(c"strstr - ct is null".as_ptr() as *const c_char);
     }
 
     let mut cs_len = 0;

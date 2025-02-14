@@ -1,7 +1,7 @@
 use {
-    crate::hooks::{asan_store, size_t, ssize_t},
+    crate::hooks::{asan_panic, asan_store, size_t, ssize_t},
     core::{
-        ffi::{c_int, c_void},
+        ffi::{c_char, c_int, c_void},
         slice::from_raw_parts_mut,
     },
     log::trace,
@@ -16,7 +16,7 @@ pub unsafe extern "C" fn read(fd: c_int, buf: *mut c_void, count: size_t) -> ssi
     trace!("read - fd: {:#x}, buf: {:p}, count: {:#x}", fd, buf, count);
 
     if buf.is_null() && count != 0 {
-        panic!("read - buf is null");
+        asan_panic(c"read - buf is null".as_ptr() as *const c_char);
     }
 
     asan_store(buf, count);

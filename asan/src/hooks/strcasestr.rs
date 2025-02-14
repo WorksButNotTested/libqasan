@@ -1,5 +1,5 @@
 use {
-    crate::hooks::asan_load,
+    crate::hooks::{asan_load, asan_panic},
     alloc::vec::Vec,
     core::{
         ffi::{c_char, c_void},
@@ -17,11 +17,11 @@ pub unsafe extern "C" fn strcasestr(cs: *const c_char, ct: *const c_char) -> *mu
     trace!("strcasestr - cs: {:p}, ct: {:p}", cs, ct);
 
     if cs.is_null() {
-        panic!("strcasestr - cs is null");
+        asan_panic(c"strcasestr - cs is null".as_ptr() as *const c_char);
     }
 
     if ct.is_null() {
-        panic!("strcasestr - ct is null");
+        asan_panic(c"strcasestr - ct is null".as_ptr() as *const c_char);
     }
 
     let mut cs_len = 0;

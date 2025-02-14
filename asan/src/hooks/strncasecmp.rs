@@ -1,5 +1,5 @@
 use {
-    crate::hooks::{asan_load, size_t},
+    crate::hooks::{asan_load, asan_panic, size_t},
     core::{
         ffi::{c_char, c_int, c_void},
         slice::from_raw_parts,
@@ -19,11 +19,11 @@ pub unsafe extern "C" fn strncasecmp(s1: *const c_char, s2: *const c_char, n: si
     }
 
     if s1.is_null() {
-        panic!("strncasecmp - s1 is null");
+        asan_panic(c"strncasecmp - s1 is null".as_ptr() as *const c_char);
     }
 
     if s2.is_null() {
-        panic!("strncasecmp - s2 is null");
+        asan_panic(c"strncasecmp - s2 is null".as_ptr() as *const c_char);
     }
 
     let mut s1_len = 0;
@@ -37,12 +37,6 @@ pub unsafe extern "C" fn strncasecmp(s1: *const c_char, s2: *const c_char, n: si
     asan_load(s1 as *const c_void, s1_len + 1);
     asan_load(s2 as *const c_void, s2_len + 1);
 
-    if s1_len != s2_len {
-        return (s1_len - s2_len) as c_int;
-    }
-
-    let len = s1_len;
-
     let to_upper = |c: c_char| -> c_char {
         if ('a' as c_char..='z' as c_char).contains(&c) {
             c - 'a' as c_char + 'A' as c_char
@@ -51,16 +45,26 @@ pub unsafe extern "C" fn strncasecmp(s1: *const c_char, s2: *const c_char, n: si
         }
     };
 
-    let s1_slice = from_raw_parts(s1, len);
-    let s2_slice = from_raw_parts(s2, len);
-    for (lc1, lc2) in s1_slice
-        .iter()
-        .cloned()
-        .map(to_upper)
-        .zip(s2_slice.iter().cloned().map(to_upper))
-    {
-        if lc1 != lc2 {
-            return (lc1 - lc2) as c_int;
+    let s1_slice = from_raw_parts(s1, s1_len);
+    let s2_slice = from_raw_parts(s2, s2_len);
+    for i in 0..s1_len.max(s2_len) {
+        if i >= s1_len {
+            return -1;
+        }
+
+        if i >= s2_len {
+            return 1;
+        }
+
+        let c1u = to_upper(s1_slice[i]);
+        let c2u = to_upper(s2_slice[i]);
+
+        if c1u < c2u {
+            return -1;
+        }
+
+        if c1u > c2u {
+            return 1;
         }
     }
 

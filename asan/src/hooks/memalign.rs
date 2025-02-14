@@ -1,9 +1,13 @@
 use {
     crate::{
-        hooks::{asan_alloc, size_t},
+        hooks::{asan_alloc, asan_panic, size_t},
         GuestAddr,
     },
-    core::{ffi::c_void, mem::size_of},
+    core::{
+        ffi::{c_char, c_void},
+        mem::size_of,
+        ptr::null_mut,
+    },
     log::trace,
 };
 
@@ -18,9 +22,11 @@ pub unsafe extern "C" fn memalign(align: size_t, size: size_t) -> *mut c_void {
     }
 
     if align % size_of::<GuestAddr>() != 0 {
-        panic!("memalign - align is not a multiple of GuestAddr");
+        asan_panic(c"memalign - align is not a multiple of pointer size".as_ptr() as *const c_char);
     } else if !is_power_of_two(align) {
-        panic!("memalign - align is not a power of two");
+        asan_panic(c"memalign - align is not a power of two".as_ptr() as *const c_char);
+    } else if size == 0 {
+        null_mut()
     } else {
         asan_alloc(size, align)
     }

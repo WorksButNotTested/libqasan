@@ -1,6 +1,9 @@
 use {
-    crate::hooks::{asan_load, asan_store, wchar_t},
-    core::{ffi::c_void, ptr::copy},
+    crate::hooks::{asan_load, asan_panic, asan_store, wchar_t},
+    core::{
+        ffi::{c_char, c_void},
+        ptr::copy,
+    },
     log::trace,
 };
 
@@ -12,11 +15,11 @@ pub unsafe extern "C" fn wcscpy(dst: *mut wchar_t, src: *const wchar_t) -> *mut 
     trace!("wcscpy - dst: {:p}, src: {:p}", dst, src);
 
     if dst.is_null() {
-        panic!("wcscpy - dst is null");
+        asan_panic(c"wcscpy - dst is null".as_ptr() as *const c_char);
     }
 
     if src.is_null() {
-        panic!("wcscpy - src is null");
+        asan_panic(c"wcscpy - src is null".as_ptr() as *const c_char);
     }
 
     let mut len = 0;

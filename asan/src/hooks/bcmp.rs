@@ -1,8 +1,8 @@
 use {
-    crate::hooks::{asan_load, size_t},
+    crate::hooks::{asan_load, asan_panic, size_t},
     core::{
         cmp::Ordering,
-        ffi::{c_int, c_void},
+        ffi::{c_char, c_int, c_void},
         slice::from_raw_parts,
     },
     log::trace,
@@ -20,11 +20,11 @@ pub unsafe extern "C" fn bcmp(cx: *const c_void, ct: *const c_void, n: size_t) -
     }
 
     if cx.is_null() {
-        panic!("bcmp - cx is null");
+        asan_panic(c"bcmp - cx is null".as_ptr() as *const c_char);
     }
 
     if ct.is_null() {
-        panic!("bcmp - ct is null");
+        asan_panic(c"bcmp - ct is null".as_ptr() as *const c_char);
     }
 
     asan_load(cx, n);

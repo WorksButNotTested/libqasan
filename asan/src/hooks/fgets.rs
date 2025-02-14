@@ -1,6 +1,6 @@
 use {
     crate::{
-        hooks::{asan_load, asan_store, asan_sym},
+        hooks::{asan_load, asan_panic, asan_store, asan_sym},
         symbols::{AtomicGuestAddr, Function, FunctionPointer},
     },
     core::ffi::{c_char, c_int, c_void},
@@ -26,7 +26,11 @@ pub unsafe extern "C" fn fgets(buf: *mut c_char, n: c_int, stream: *mut FILE) ->
     trace!("fgets - buf: {:p}, n: {:#x}, stream: {:p}", buf, n, stream);
 
     if buf.is_null() && n != 0 {
-        panic!("fgets - buf is null");
+        asan_panic(c"fgets - buf is null".as_ptr() as *const c_char);
+    }
+
+    if stream.is_null() {
+        asan_panic(c"fgets - stream is null".as_ptr() as *const c_char);
     }
 
     asan_store(buf as *const c_void, n as usize);
