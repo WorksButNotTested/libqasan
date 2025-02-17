@@ -3,7 +3,7 @@ use {
         hooks::{asan_sym, asan_untrack, size_t},
         symbols::{AtomicGuestAddr, Function, FunctionPointer},
     },
-    core::ffi::c_char,
+    core::ffi::{c_char, CStr},
     libc::{c_int, c_void},
     log::trace,
 };
@@ -13,7 +13,7 @@ struct FunctionMunmap;
 
 impl Function for FunctionMunmap {
     type Func = unsafe extern "C" fn(addr: *mut c_void, len: size_t) -> c_int;
-    const NAME: &'static str = "munmap\0";
+    const NAME: &'static CStr = c"munmap";
 }
 
 static MUNMAP_ADDR: AtomicGuestAddr = AtomicGuestAddr::new();

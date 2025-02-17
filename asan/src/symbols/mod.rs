@@ -4,15 +4,18 @@
 //! conventional symbol lookup is not possible, e.g. if libc is statically
 //! linked
 use {
-    crate::GuestAddr,
+    crate::{hooks::PatchesCheckError, GuestAddr},
     alloc::fmt::Debug,
     core::{
-        ffi::{c_char, c_void},
+        ffi::{c_char, c_void, CStr},
         ptr::null_mut,
         sync::atomic::{AtomicPtr, Ordering},
     },
     thiserror::Error,
 };
+
+#[cfg(feature = "hooks")]
+use crate::hooks::Patches;
 
 #[cfg(feature = "libc")]
 pub mod dlsym;
@@ -82,16 +85,16 @@ pub trait Symbols: Debug + Sized + Send {
 }
 
 pub trait Function {
-    const NAME: &'static str;
+    const NAME: &'static CStr;
     type Func: Copy;
 }
 
 pub trait SymbolsLookupStr: Symbols {
-    fn lookup_str(name: &str) -> Result<GuestAddr, Self::Error>;
+    fn lookup_str(name: &CStr) -> Result<GuestAddr, Self::Error>;
 }
 
 impl<S: Symbols> SymbolsLookupStr for S {
-    fn lookup_str(name: &str) -> Result<GuestAddr, Self::Error> {
+    fn lookup_str(name: &CStr) -> Result<GuestAddr, Self::Error> {
         S::lookup(name.as_ptr() as *const c_char)
     }
 }
@@ -105,6 +108,10 @@ impl<T: Function> FunctionPointer for T {
         if addr == GuestAddr::MIN || addr == GuestAddr::MAX {
             Err(FunctionPointerError::BadAddress(addr))?;
         }
+
+        #[cfg(feature = "hooks")]
+        Patches::check_patched(addr).map_err(|e| FunctionPointerError::PatchedAddress(e))?;
+
         let pp_sym = (&addr) as *const GuestAddr as *const *mut c_void;
         let p_f = pp_sym as *const Self::Func;
         let f = unsafe { *p_f };
@@ -116,4 +123,6 @@ impl<T: Function> FunctionPointer for T {
 pub enum FunctionPointerError {
     #[error("Bad address: {0}")]
     BadAddress(GuestAddr),
+    #[error("Patched address: {0}")]
+    PatchedAddress(PatchesCheckError),
 }

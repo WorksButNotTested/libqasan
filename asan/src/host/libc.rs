@@ -11,7 +11,10 @@ use {
         },
         GuestAddr,
     },
-    core::{ffi::c_long, marker::PhantomData},
+    core::{
+        ffi::{c_long, CStr},
+        marker::PhantomData,
+    },
     thiserror::Error,
 };
 
@@ -20,7 +23,7 @@ struct FunctionSyscall;
 
 impl Function for FunctionSyscall {
     type Func = unsafe extern "C" fn(num: c_long, ...) -> c_long;
-    const NAME: &'static str = "syscall\0";
+    const NAME: &'static CStr = c"syscall";
 }
 
 #[derive(Debug)]

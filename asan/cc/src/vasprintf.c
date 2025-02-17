@@ -5,7 +5,7 @@
 #include "printf.h"
 #include "trace.h"
 
-int vasprintf(char **restrict strp, const char *restrict fmt, va_list va){
+int vasprintf(char **restrict strp, const char *restrict fmt, va_list va) {
 
   trace("asprintf - strp: %p, fmt: %p\n", strp, fmt);
   if (strp == NULL) {

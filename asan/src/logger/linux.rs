@@ -1,7 +1,7 @@
 use {
     alloc::{boxed::Box, format},
     log::{Level, LevelFilter, Log, Metadata, Record},
-    rustix::{io::write, stdio::stdout},
+    rustix::{io::write, stdio::stderr},
     spin::Once,
 };
 
@@ -39,7 +39,7 @@ impl Log for LinuxLogger {
             );
             let buf = formatted.as_bytes();
             #[allow(unused_unsafe)]
-            let fd = unsafe { stdout() };
+            let fd = unsafe { stderr() };
             write(fd, buf).unwrap();
         }
     }

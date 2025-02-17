@@ -4,8 +4,8 @@ use {
         GuestAddr,
     },
     alloc::{boxed::Box, format},
-    core::ffi::{c_int, c_void},
-    libc::{size_t, ssize_t, STDOUT_FILENO},
+    core::ffi::{c_int, c_void, CStr},
+    libc::{size_t, ssize_t, STDERR_FILENO},
     log::{Level, LevelFilter, Log, Metadata, Record},
     spin::Once,
 };
@@ -15,7 +15,7 @@ struct FunctionWrite;
 
 impl Function for FunctionWrite {
     type Func = unsafe extern "C" fn(c_int, *const c_void, size_t) -> ssize_t;
-    const NAME: &'static str = "write\0";
+    const NAME: &'static CStr = c"write";
 }
 
 static ONCE: Once<&'static LibcLogger> = Once::new();
@@ -55,7 +55,7 @@ impl Log for LibcLogger {
             let fn_write = FunctionWrite::as_ptr(self.write).unwrap();
             unsafe {
                 fn_write(
-                    STDOUT_FILENO,
+                    STDERR_FILENO,
                     buf.as_ptr() as *const c_void,
                     buf.len() as size_t,
                 )

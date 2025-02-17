@@ -9,7 +9,7 @@ mod tests {
             },
             GuestAddr,
         },
-        core::ffi::{c_int, c_void},
+        core::ffi::{c_int, c_void, CStr},
         libc::{off_t, size_t},
     };
 
@@ -19,7 +19,7 @@ mod tests {
     impl Function for FunctionMmap {
         type Func =
             unsafe extern "C" fn(*mut c_void, size_t, c_int, c_int, c_int, off_t) -> *mut c_void;
-        const NAME: &'static str = "mmap\0";
+        const NAME: &'static CStr = c"mmap";
     }
 
     #[derive(Debug)]
@@ -27,7 +27,7 @@ mod tests {
 
     impl Function for FunctionMunmap {
         type Func = unsafe extern "C" fn(*mut c_void, size_t) -> c_int;
-        const NAME: &'static str = "munmap\0";
+        const NAME: &'static CStr = c"munmap";
     }
 
     type DLSYM = DlSymSymbols<LookupTypeDefault>;
@@ -36,8 +36,8 @@ mod tests {
     fn test_dlsym() {
         use asan::symbols::FunctionPointer;
 
-        let mmap = DLSYM::lookup_str("mmap\0").unwrap();
-        let mmap2 = DLSYM::lookup_str("mmap\0").unwrap();
+        let mmap = DLSYM::lookup_str(c"mmap").unwrap();
+        let mmap2 = DLSYM::lookup_str(c"mmap").unwrap();
         assert_eq!(mmap, mmap2);
         let fnmmap = FunctionMmap::as_ptr(mmap).unwrap();
         let mapping = unsafe {
@@ -52,8 +52,8 @@ mod tests {
         };
         let addr = mapping as GuestAddr;
         assert!(addr & 0xfff == 0);
-        let munmap = DLSYM::lookup_str("munmap\0").unwrap();
-        let munmap2 = DLSYM::lookup_str("munmap\0").unwrap();
+        let munmap = DLSYM::lookup_str(c"munmap").unwrap();
+        let munmap2 = DLSYM::lookup_str(c"munmap").unwrap();
         assert_eq!(munmap, munmap2);
         let fnmunmap = FunctionMunmap::as_ptr(munmap).unwrap();
         let ret = unsafe { fnmunmap(mapping, 4096) };

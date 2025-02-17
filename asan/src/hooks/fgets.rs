@@ -3,7 +3,7 @@ use {
         hooks::{asan_load, asan_panic, asan_store, asan_sym},
         symbols::{AtomicGuestAddr, Function, FunctionPointer},
     },
-    core::ffi::{c_char, c_int, c_void},
+    core::ffi::{c_char, c_int, c_void, CStr},
     libc::FILE,
     log::trace,
 };
@@ -13,7 +13,7 @@ struct FunctionFgets;
 
 impl Function for FunctionFgets {
     type Func = unsafe extern "C" fn(buf: *mut c_char, n: c_int, stream: *mut FILE) -> *mut c_char;
-    const NAME: &'static str = "fgets\0";
+    const NAME: &'static CStr = c"fgets";
 }
 
 static FGETS_ADDR: AtomicGuestAddr = AtomicGuestAddr::new();

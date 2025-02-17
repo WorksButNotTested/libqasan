@@ -3,7 +3,7 @@ use {
         hooks::{asan_load, asan_panic, asan_sym, size_t, ssize_t},
         symbols::{AtomicGuestAddr, Function, FunctionPointer},
     },
-    core::ffi::{c_char, c_long},
+    core::ffi::{c_char, c_long, CStr},
     libc::{c_int, c_void, SYS_write},
     log::trace,
 };
@@ -13,7 +13,7 @@ struct FunctionSyscall;
 
 impl Function for FunctionSyscall {
     type Func = unsafe extern "C" fn(num: c_long, ...) -> c_long;
-    const NAME: &'static str = "syscall\0";
+    const NAME: &'static CStr = c"syscall";
 }
 
 static SYSCALL_ADDR: AtomicGuestAddr = AtomicGuestAddr::new();

@@ -127,6 +127,7 @@ dependencies = [
  "cc",
  "dlmalloc",
  "env_logger",
+ "itertools 0.14.0",
  "libc",
  "log",
  "mockall",
@@ -177,7 +178,7 @@ dependencies = [
  "bitflags",
  "cexpr",
  "clang-sys",
- "itertools",
+ "itertools 0.13.0",
  "log",
  "prettyplease",
  "proc-macro2",
@@ -1037,6 +1038,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "itertools"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2b192c782037fadd9cfa75548310488aabdbf3d2da73885b31bd0abd03351285"
+dependencies = [
+ "either",
+]
+
+[[package]]
 name = "itoa"
 version = "1.0.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1060,7 +1070,7 @@ checksum = "078e285eafdfb6c4b434e0d31e8cfcb5115b651496faca5749b88fafd4f23bfd"
 [[package]]
 name = "libafl"
 version = "0.15.1"
-source = "git+https://github.com/WorksButNotTested/LibAFL.git?rev=9e1425e#9e1425e0fb991219a8ec43c86b7334241d666d41"
+source = "git+https://github.com/AFLplusplus/LibAFL.git?rev=641db5f19ba5ad4c6612a460ae70504c26bbfc58#641db5f19ba5ad4c6612a460ae70504c26bbfc58"
 dependencies = [
  "ahash",
  "arbitrary-int",
@@ -1090,13 +1100,14 @@ dependencies = [
  "typed-builder",
  "uuid",
  "wait-timeout",
+ "winapi",
  "windows 0.59.0",
 ]
 
 [[package]]
 name = "libafl_bolts"
 version = "0.15.1"
-source = "git+https://github.com/WorksButNotTested/LibAFL.git?rev=9e1425e#9e1425e0fb991219a8ec43c86b7334241d666d41"
+source = "git+https://github.com/AFLplusplus/LibAFL.git?rev=641db5f19ba5ad4c6612a460ae70504c26bbfc58#641db5f19ba5ad4c6612a460ae70504c26bbfc58"
 dependencies = [
  "ahash",
  "backtrace",
@@ -1111,6 +1122,7 @@ dependencies = [
  "miniz_oxide",
  "nix",
  "num_enum",
+ "once_cell",
  "postcard",
  "rand_core",
  "rustversion",
@@ -1121,6 +1133,7 @@ dependencies = [
  "typeid",
  "uds",
  "uuid",
+ "winapi",
  "windows 0.59.0",
  "windows-result 0.3.0",
  "xxhash-rust",
@@ -1129,7 +1142,7 @@ dependencies = [
 [[package]]
 name = "libafl_derive"
 version = "0.15.1"
-source = "git+https://github.com/WorksButNotTested/LibAFL.git?rev=9e1425e#9e1425e0fb991219a8ec43c86b7334241d666d41"
+source = "git+https://github.com/AFLplusplus/LibAFL.git?rev=641db5f19ba5ad4c6612a460ae70504c26bbfc58#641db5f19ba5ad4c6612a460ae70504c26bbfc58"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1139,7 +1152,7 @@ dependencies = [
 [[package]]
 name = "libafl_qemu"
 version = "0.15.1"
-source = "git+https://github.com/WorksButNotTested/LibAFL.git?rev=9e1425e#9e1425e0fb991219a8ec43c86b7334241d666d41"
+source = "git+https://github.com/AFLplusplus/LibAFL.git?rev=641db5f19ba5ad4c6612a460ae70504c26bbfc58#641db5f19ba5ad4c6612a460ae70504c26bbfc58"
 dependencies = [
  "addr2line",
  "bindgen",
@@ -1181,7 +1194,7 @@ dependencies = [
 [[package]]
 name = "libafl_qemu_build"
 version = "0.15.1"
-source = "git+https://github.com/WorksButNotTested/LibAFL.git?rev=9e1425e#9e1425e0fb991219a8ec43c86b7334241d666d41"
+source = "git+https://github.com/AFLplusplus/LibAFL.git?rev=641db5f19ba5ad4c6612a460ae70504c26bbfc58#641db5f19ba5ad4c6612a460ae70504c26bbfc58"
 dependencies = [
  "bindgen",
  "cc",
@@ -1197,7 +1210,7 @@ dependencies = [
 [[package]]
 name = "libafl_qemu_sys"
 version = "0.15.1"
-source = "git+https://github.com/WorksButNotTested/LibAFL.git?rev=9e1425e#9e1425e0fb991219a8ec43c86b7334241d666d41"
+source = "git+https://github.com/AFLplusplus/LibAFL.git?rev=641db5f19ba5ad4c6612a460ae70504c26bbfc58#641db5f19ba5ad4c6612a460ae70504c26bbfc58"
 dependencies = [
  "libafl_qemu_build",
  "libc",
@@ -1211,7 +1224,7 @@ dependencies = [
 [[package]]
 name = "libafl_targets"
 version = "0.15.1"
-source = "git+https://github.com/WorksButNotTested/LibAFL.git?rev=9e1425e#9e1425e0fb991219a8ec43c86b7334241d666d41"
+source = "git+https://github.com/AFLplusplus/LibAFL.git?rev=641db5f19ba5ad4c6612a460ae70504c26bbfc58#641db5f19ba5ad4c6612a460ae70504c26bbfc58"
 dependencies = [
  "bindgen",
  "cc",

@@ -1,9 +1,10 @@
 #include <limits.h>
 #include <stdarg.h>
+#include "printf.h"
 
 static char log_buffer[PATH_MAX] = {0};
 
-extern log_trace(char * msg);
+extern void log_trace(char * msg);
 
 void trace(const char* fmt, ...) {
   va_list va;

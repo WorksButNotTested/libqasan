@@ -61,6 +61,8 @@ pub mod host;
 
 pub mod logger;
 
+pub mod maps;
+
 #[cfg(not(feature = "test"))]
 pub mod mem;
 

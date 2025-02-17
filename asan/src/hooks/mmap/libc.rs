@@ -3,7 +3,7 @@ use {
         hooks::{asan_sym, asan_track, asan_unpoison, off_t, size_t},
         symbols::{AtomicGuestAddr, Function, FunctionPointer},
     },
-    core::ffi::c_char,
+    core::ffi::{c_char, CStr},
     libc::{c_int, c_void},
     log::trace,
 };
@@ -20,7 +20,7 @@ impl Function for FunctionMmap {
         fd: c_int,
         offset: off_t,
     ) -> *mut c_void;
-    const NAME: &'static str = "mmap\0";
+    const NAME: &'static CStr = c"mmap";
 }
 
 static MMAP_ADDR: AtomicGuestAddr = AtomicGuestAddr::new();

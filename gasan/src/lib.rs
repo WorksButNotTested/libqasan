@@ -3,9 +3,15 @@ extern crate alloc;
 
 use {
     asan::{
-        allocator::frontend::{default::DefaultFrontend, AllocatorFrontend},
+        allocator::{
+            backend::dlmalloc::DlmallocBackend,
+            frontend::{default::DefaultFrontend, AllocatorFrontend},
+        },
+        hooks::Patches,
         logger::libc::LibcLogger,
+        maps::libc::LibcMapReader,
         mmap::libc::LibcMmap,
+        patch::raw::RawPatch,
         shadow::{
             guest::{DefaultShadowLayout, GuestShadow},
             Shadow,
@@ -25,10 +31,12 @@ use {
 
 type Syms = DlSymSymbols<LookupTypeNext>;
 
-type BE = asan::allocator::backend::dlmalloc::DlmallocBackend<LibcMmap<Syms>>;
+type GasanMmap = LibcMmap<Syms>;
+
+type GasanBackend = DlmallocBackend<GasanMmap>;
 
 pub type GasanFrontend =
-    DefaultFrontend<BE, GuestShadow<LibcMmap<Syms>, DefaultShadowLayout>, GuestTracking>;
+    DefaultFrontend<GasanBackend, GuestShadow<GasanMmap, DefaultShadowLayout>, GuestTracking>;
 
 pub type GasanSyms = DlSymSymbols<LookupTypeNext>;
 
@@ -37,8 +45,8 @@ const PAGE_SIZE: usize = 4096;
 static FRONTEND: Lazy<Mutex<GasanFrontend>> = Lazy::new(|| {
     LibcLogger::initialize::<GasanSyms>(Level::Trace);
     info!("init");
-    let backend = BE::new(PAGE_SIZE);
-    let shadow = GuestShadow::<LibcMmap<Syms>, DefaultShadowLayout>::new().unwrap();
+    let backend = GasanBackend::new(PAGE_SIZE);
+    let shadow = GuestShadow::<GasanMmap, DefaultShadowLayout>::new().unwrap();
     let tracking = GuestTracking::new().unwrap();
     let frontend = GasanFrontend::new(
         backend,
@@ -48,6 +56,7 @@ static FRONTEND: Lazy<Mutex<GasanFrontend>> = Lazy::new(|| {
         GasanFrontend::DEFAULT_QUARANTINE_SIZE,
     )
     .unwrap();
+    Patches::init::<GasanSyms, RawPatch, LibcMapReader<GasanSyms>, GasanMmap>().unwrap();
     Mutex::new(frontend)
 });
 

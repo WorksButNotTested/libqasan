@@ -10,7 +10,7 @@ use {
 /// # Safety
 /// See man pages
 #[no_mangle]
-#[export_name = "patch_atoll"]
+#[cfg_attr(feature = "test", export_name = "patch_atoll")]
 pub unsafe extern "C" fn atoll(s: *const c_char) -> c_longlong {
     trace!("atoll - s: {:p}", s);
 

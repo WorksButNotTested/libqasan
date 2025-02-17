@@ -28,6 +28,6 @@ clap = { version = "4.5.18", features = ["derive", "string"] }
 env_logger = { version = "0.11.5" }
 log = { version = "0.4.22" }
 readonly = { version = "0.2.12" }
-libafl_bolts = { git = "https://github.com/WorksButNotTested/LibAFL.git", rev = "9e1425e" }
-libafl_qemu = { git = "https://github.com/WorksButNotTested/LibAFL.git", rev = "9e1425e" }
+libafl_bolts = { git = "https://github.com/AFLplusplus/LibAFL.git", rev = "641db5f19ba5ad4c6612a460ae70504c26bbfc58" }
+libafl_qemu = { git = "https://github.com/AFLplusplus/LibAFL.git", rev = "641db5f19ba5ad4c6612a460ae70504c26bbfc58" }
 thiserror = { version = "2.0.11" }

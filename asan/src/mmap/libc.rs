@@ -14,7 +14,7 @@ use {
     },
     core::{
         cmp::Ordering,
-        ffi::{c_int, c_void},
+        ffi::{c_int, c_void, CStr},
         marker::PhantomData,
         ptr::null_mut,
         slice::{from_raw_parts, from_raw_parts_mut},
@@ -32,7 +32,7 @@ struct FunctionMmap;
 impl Function for FunctionMmap {
     type Func =
         unsafe extern "C" fn(*mut c_void, size_t, c_int, c_int, c_int, off_t) -> *mut c_void;
-    const NAME: &'static str = "mmap\0";
+    const NAME: &'static CStr = c"mmap";
 }
 
 #[derive(Debug)]
@@ -40,7 +40,7 @@ struct FunctionMunmap;
 
 impl Function for FunctionMunmap {
     type Func = unsafe extern "C" fn(*mut c_void, size_t) -> c_int;
-    const NAME: &'static str = "munmap\0";
+    const NAME: &'static CStr = c"munmap";
 }
 
 #[derive(Debug)]
@@ -48,7 +48,7 @@ struct FunctionMprotect;
 
 impl Function for FunctionMprotect {
     type Func = unsafe extern "C" fn(*mut c_void, size_t, c_int) -> c_int;
-    const NAME: &'static str = "mprotect\0";
+    const NAME: &'static CStr = c"mprotect";
 }
 
 #[derive(Debug)]
@@ -56,7 +56,7 @@ struct FunctionErrnoLocation;
 
 impl Function for FunctionErrnoLocation {
     type Func = unsafe extern "C" fn() -> *mut c_int;
-    const NAME: &'static str = "errno_location\0";
+    const NAME: &'static CStr = c"errno_location";
 }
 
 #[derive(Debug)]
@@ -64,7 +64,7 @@ struct FunctionMadvise;
 
 impl Function for FunctionMadvise {
     type Func = unsafe extern "C" fn(*mut c_void, size_t, c_int) -> c_int;
-    const NAME: &'static str = "madvise\0";
+    const NAME: &'static CStr = c"madvise";
 }
 
 #[derive(Debug)]

@@ -10,7 +10,7 @@ use {
 /// # Safety
 /// See man pages
 #[no_mangle]
-#[export_name = "patch_atoi"]
+#[cfg_attr(feature = "test", export_name = "patch_atoi")]
 pub unsafe extern "C" fn atoi(s: *const c_char) -> c_int {
     trace!("atoi - s: {:p}", s);
 

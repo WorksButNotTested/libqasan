@@ -3,7 +3,7 @@ use {
         symbols::{Function, FunctionPointer},
         GuestAddr,
     },
-    core::ffi::{c_char, c_int},
+    core::ffi::{c_char, c_int, CStr},
     libc::{pid_t, SIGABRT},
 };
 
@@ -12,7 +12,7 @@ struct FunctionGetpid;
 
 impl Function for FunctionGetpid {
     type Func = unsafe extern "C" fn() -> pid_t;
-    const NAME: &'static str = "getpid\0";
+    const NAME: &'static CStr = c"getpid";
 }
 
 #[derive(Debug)]
@@ -20,7 +20,7 @@ struct FunctionKill;
 
 impl Function for FunctionKill {
     type Func = unsafe extern "C" fn(pid_t, c_int) -> c_int;
-    const NAME: &'static str = "kill\0";
+    const NAME: &'static CStr = c"kill";
 }
 
 #[derive(Debug)]
@@ -28,7 +28,7 @@ struct FunctionExit;
 
 impl Function for FunctionExit {
     type Func = unsafe extern "C" fn(c_int) -> !;
-    const NAME: &'static str = "_exit\0";
+    const NAME: &'static CStr = c"_exit";
 }
 
 extern "C" {

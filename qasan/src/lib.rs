@@ -3,9 +3,16 @@ extern crate alloc;
 
 use {
     asan::{
-        allocator::frontend::{default::DefaultFrontend, AllocatorFrontend},
+        allocator::{
+            backend::dlmalloc::DlmallocBackend,
+            frontend::{default::DefaultFrontend, AllocatorFrontend},
+        },
+        hooks::Patches,
         host::libc::LibcHost,
         logger::libc::LibcLogger,
+        maps::libc::LibcMapReader,
+        mmap::libc::LibcMmap,
+        patch::raw::RawPatch,
         shadow::{host::HostShadow, Shadow},
         symbols::{
             dlsym::{DlSymSymbols, LookupTypeNext},
@@ -21,10 +28,12 @@ use {
 
 type Syms = DlSymSymbols<LookupTypeNext>;
 
-type BE = asan::allocator::backend::dlmalloc::DlmallocBackend<asan::mmap::libc::LibcMmap<Syms>>;
+type QasanMmap = LibcMmap<Syms>;
+
+type QasanBackend = DlmallocBackend<QasanMmap>;
 
 pub type QasanFrontend =
-    DefaultFrontend<BE, HostShadow<LibcHost<Syms>>, HostTracking<LibcHost<Syms>>>;
+    DefaultFrontend<QasanBackend, HostShadow<LibcHost<Syms>>, HostTracking<LibcHost<Syms>>>;
 
 pub type QasanSyms = DlSymSymbols<LookupTypeNext>;
 
@@ -32,7 +41,7 @@ const PAGE_SIZE: usize = 4096;
 
 static FRONTEND: Lazy<Mutex<QasanFrontend>> = Lazy::new(|| {
     LibcLogger::initialize::<QasanSyms>(Level::Info);
-    let backend = BE::new(PAGE_SIZE);
+    let backend = QasanBackend::new(PAGE_SIZE);
     let shadow = HostShadow::<LibcHost<Syms>>::new().unwrap();
     let tracking = HostTracking::<LibcHost<Syms>>::new().unwrap();
     let frontend = QasanFrontend::new(
@@ -43,6 +52,7 @@ static FRONTEND: Lazy<Mutex<QasanFrontend>> = Lazy::new(|| {
         QasanFrontend::DEFAULT_QUARANTINE_SIZE,
     )
     .unwrap();
+    Patches::init::<QasanSyms, RawPatch, LibcMapReader<QasanSyms>, QasanMmap>().unwrap();
     Mutex::new(frontend)
 });
 
