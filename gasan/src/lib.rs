@@ -1,4 +1,4 @@
-#![no_std]
+#![cfg_attr(not(feature = "test"), no_std)]
 extern crate alloc;
 
 use {
@@ -7,11 +7,10 @@ use {
             backend::dlmalloc::DlmallocBackend,
             frontend::{default::DefaultFrontend, AllocatorFrontend},
         },
-        hooks::Patches,
         logger::libc::LibcLogger,
         maps::libc::LibcMapReader,
         mmap::libc::LibcMmap,
-        patch::raw::RawPatch,
+        patch::{hooks::PatchedHooks, raw::RawPatch},
         shadow::{
             guest::{DefaultShadowLayout, GuestShadow},
             Shadow,
@@ -56,12 +55,13 @@ static FRONTEND: Lazy<Mutex<GasanFrontend>> = Lazy::new(|| {
         GasanFrontend::DEFAULT_QUARANTINE_SIZE,
     )
     .unwrap();
-    Patches::init::<GasanSyms, RawPatch, LibcMapReader<GasanSyms>, GasanMmap>().unwrap();
+    PatchedHooks::init::<GasanSyms, RawPatch, LibcMapReader<GasanSyms>, GasanMmap>().unwrap();
     Mutex::new(frontend)
 });
 
 #[no_mangle]
-pub extern "C" fn asan_load(addr: *const c_void, size: usize) {
+/// # Safety
+pub unsafe extern "C" fn asan_load(addr: *const c_void, size: usize) {
     trace!("load - addr: 0x{:x}, size: {:#x}", addr as GuestAddr, size);
     if FRONTEND
         .lock()
@@ -74,7 +74,8 @@ pub extern "C" fn asan_load(addr: *const c_void, size: usize) {
 }
 
 #[no_mangle]
-pub extern "C" fn asan_store(addr: *const c_void, size: usize) {
+/// # Safety
+pub unsafe extern "C" fn asan_store(addr: *const c_void, size: usize) {
     trace!("store - addr: 0x{:x}, size: {:#x}", addr as GuestAddr, size);
     if FRONTEND
         .lock()
@@ -87,7 +88,8 @@ pub extern "C" fn asan_store(addr: *const c_void, size: usize) {
 }
 
 #[no_mangle]
-pub extern "C" fn asan_alloc(len: usize, align: usize) -> *mut c_void {
+/// # Safety
+pub unsafe extern "C" fn asan_alloc(len: usize, align: usize) -> *mut c_void {
     trace!("alloc - len: {:#x}, align: {:#x}", len, align);
     let ptr = FRONTEND.lock().alloc(len, align).unwrap() as *mut c_void;
     trace!(
@@ -100,29 +102,34 @@ pub extern "C" fn asan_alloc(len: usize, align: usize) -> *mut c_void {
 }
 
 #[no_mangle]
-pub extern "C" fn asan_dealloc(addr: *const c_void) {
+/// # Safety
+pub unsafe extern "C" fn asan_dealloc(addr: *const c_void) {
     trace!("free - addr: {:p}", addr);
     FRONTEND.lock().dealloc(addr as GuestAddr).unwrap();
 }
 
 #[no_mangle]
-pub extern "C" fn asan_get_size(addr: *const c_void) -> usize {
+/// # Safety
+pub unsafe extern "C" fn asan_get_size(addr: *const c_void) -> usize {
     trace!("get_size - addr: {:p}", addr);
     FRONTEND.lock().get_size(addr as GuestAddr).unwrap()
 }
 
 #[no_mangle]
-pub extern "C" fn asan_sym(name: *const c_char) -> GuestAddr {
+/// # Safety
+pub unsafe extern "C" fn asan_sym(name: *const c_char) -> GuestAddr {
     GasanSyms::lookup(name).unwrap()
 }
 
 #[no_mangle]
-pub extern "C" fn asan_page_size() -> usize {
+/// # Safety
+pub unsafe extern "C" fn asan_page_size() -> usize {
     PAGE_SIZE
 }
 
 #[no_mangle]
-pub extern "C" fn asan_unpoison(addr: *const c_void, len: usize) {
+/// # Safety
+pub unsafe extern "C" fn asan_unpoison(addr: *const c_void, len: usize) {
     trace!("unpoison - addr: {:p}, len: {:#x}", addr, len);
     FRONTEND
         .lock()
@@ -132,7 +139,8 @@ pub extern "C" fn asan_unpoison(addr: *const c_void, len: usize) {
 }
 
 #[no_mangle]
-pub extern "C" fn asan_track(addr: *const c_void, len: usize) {
+/// # Safety
+pub unsafe extern "C" fn asan_track(addr: *const c_void, len: usize) {
     trace!("track - addr: {:p}, len: {:#x}", addr, len);
     FRONTEND
         .lock()
@@ -142,7 +150,8 @@ pub extern "C" fn asan_track(addr: *const c_void, len: usize) {
 }
 
 #[no_mangle]
-pub extern "C" fn asan_untrack(addr: *const c_void) {
+/// # Safety
+pub unsafe extern "C" fn asan_untrack(addr: *const c_void) {
     trace!("untrack - addr: {:p}", addr);
     FRONTEND
         .lock()
@@ -152,10 +161,17 @@ pub extern "C" fn asan_untrack(addr: *const c_void) {
 }
 
 #[no_mangle]
-pub extern "C" fn asan_panic(msg: *const c_char) -> ! {
+/// # Safety
+pub unsafe extern "C" fn asan_panic(msg: *const c_char) -> ! {
     trace!("panic - msg: {:p}", msg);
     let msg = unsafe { CStr::from_ptr(msg as *const c_char) };
     panic!("{}", msg.to_str().unwrap());
+}
+
+#[no_mangle]
+/// # Safety
+pub unsafe extern "C" fn asan_swap(_enabled: bool) {
+    /* Don't log since this function is on the logging path */
 }
 
 #[no_mangle]

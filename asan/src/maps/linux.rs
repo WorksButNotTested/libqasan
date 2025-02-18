@@ -22,12 +22,12 @@ impl MapReader for LinuxMapReader {
             OFlags::RDONLY | OFlags::NONBLOCK,
             Mode::empty(),
         )
-        .map_err(|e| LinuxMapReaderError::FailedToOpen(e))?;
+        .map_err(LinuxMapReaderError::FailedToOpen)?;
         Ok(LinuxMapReader { fd })
     }
 
     fn read(&mut self, buf: &mut [u8]) -> Result<usize, Self::Error> {
-        read(&self.fd, buf).map_err(|e| LinuxMapReaderError::FailedToRead(e))
+        read(&self.fd, buf).map_err(LinuxMapReaderError::FailedToRead)
     }
 }
 

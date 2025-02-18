@@ -1,6 +1,6 @@
 use {
     crate::{
-        hooks::{asan_load, asan_panic, asan_store, asan_sym},
+        asan_load, asan_panic, asan_store, asan_swap, asan_sym,
         symbols::{AtomicGuestAddr, Function, FunctionPointer},
     },
     core::ffi::{c_char, c_int, c_void, CStr},
@@ -20,7 +20,7 @@ static FGETS_ADDR: AtomicGuestAddr = AtomicGuestAddr::new();
 
 /// # Safety
 /// See man pages
-#[no_mangle]
+#[cfg_attr(not(feature = "test"), no_mangle)]
 #[cfg_attr(feature = "test", export_name = "patch_fgets")]
 pub unsafe extern "C" fn fgets(buf: *mut c_char, n: c_int, stream: *mut FILE) -> *mut c_char {
     trace!("fgets - buf: {:p}, n: {:#x}, stream: {:p}", buf, n, stream);
@@ -37,6 +37,9 @@ pub unsafe extern "C" fn fgets(buf: *mut c_char, n: c_int, stream: *mut FILE) ->
     asan_load(stream as *const c_void, size_of::<FILE>());
     let addr =
         FGETS_ADDR.get_or_insert_with(|| asan_sym(FunctionFgets::NAME.as_ptr() as *const c_char));
-    let fgets = FunctionFgets::as_ptr(addr).unwrap();
-    fgets(buf, n, stream)
+    let fn_fgets = FunctionFgets::as_ptr(addr).unwrap();
+    asan_swap(false);
+    let ret = fn_fgets(buf, n, stream);
+    asan_swap(true);
+    ret
 }

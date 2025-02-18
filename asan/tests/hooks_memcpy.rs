@@ -2,7 +2,7 @@
 #[cfg(all(feature = "hooks"))]
 mod tests {
     use {
-        asan::hooks::{expect_panic, memcpy::memcpy},
+        asan::{expect_panic, hooks::memcpy::memcpy},
         core::{
             ffi::c_void,
             ptr::{null, null_mut},

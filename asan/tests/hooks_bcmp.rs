@@ -2,7 +2,7 @@
 #[cfg(feature = "hooks")]
 mod tests {
     use {
-        asan::hooks::{bcmp::bcmp, expect_panic},
+        asan::{expect_panic, hooks::bcmp::bcmp},
         core::{ffi::c_void, ptr::null},
     };
 

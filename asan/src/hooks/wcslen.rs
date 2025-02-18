@@ -1,12 +1,11 @@
 use {
-    crate::hooks::{asan_load, asan_panic, size_t, wchar_t},
+    crate::{asan_load, asan_panic, size_t, wchar_t},
     core::ffi::{c_char, c_void},
     log::trace,
 };
 
 /// # Safety
 /// See man pages
-#[no_mangle]
 #[export_name = "patch_wcslen"]
 pub unsafe extern "C" fn wcslen(buf: *const wchar_t) -> size_t {
     trace!("wcslen - buf: {:p}", buf);

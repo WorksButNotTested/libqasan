@@ -1,5 +1,5 @@
 use {
-    crate::hooks::{asan_untrack, size_t},
+    crate::{asan_untrack, hooks::size_t},
     core::ffi::{c_int, c_void},
     log::trace,
     rustix::mm::munmap as rmunmap,
@@ -7,7 +7,7 @@ use {
 
 /// # Safety
 /// See man pages
-#[no_mangle]
+#[cfg_attr(not(feature = "test"), no_mangle)]
 #[cfg_attr(feature = "test", export_name = "patch_munmap")]
 pub unsafe extern "C" fn munmap(addr: *mut c_void, len: size_t) -> c_int {
     trace!("munmap - addr: {:p}, len: {:#x}", addr, len);

@@ -1,13 +1,13 @@
-use {crate::nostd::die, log::error};
+use {crate::exit::abort, log::error};
 
 #[no_mangle]
 extern "C" fn __aeabi_unwind_cpp_pr0() {
     error!("__aeabi_unwind_cpp_pr0");
-    die();
+    abort();
 }
 
 #[no_mangle]
 extern "C" fn __aeabi_unwind_cpp_pr1() {
     error!("__aeabi_unwind_cpp_pr1");
-    die();
+    abort();
 }

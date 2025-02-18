@@ -1,5 +1,5 @@
 use {
-    crate::hooks::{asan_load, asan_panic, asan_store, wchar_t},
+    crate::{asan_load, asan_panic, asan_store, wchar_t},
     core::{
         ffi::{c_char, c_void},
         ptr::copy,
@@ -9,7 +9,6 @@ use {
 
 /// # Safety
 /// See man pages
-#[no_mangle]
 #[export_name = "patch_wcscpy"]
 pub unsafe extern "C" fn wcscpy(dst: *mut wchar_t, src: *const wchar_t) -> *mut wchar_t {
     trace!("wcscpy - dst: {:p}, src: {:p}", dst, src);

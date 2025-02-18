@@ -11,6 +11,7 @@ fn main() {
         .define("_GNU_SOURCE", None)
         .flag("-Werror")
         .flag("-fno-stack-protector")
+        .flag("-ffunction-sections")
         .include("cc/include/")
         .file("cc/src/asprintf.c")
         .compile("asprintf");
@@ -19,6 +20,7 @@ fn main() {
         .define("_GNU_SOURCE", None)
         .flag("-Werror")
         .flag("-fno-stack-protector")
+        .flag("-ffunction-sections")
         .include("cc/include/")
         .file("cc/src/log.c")
         .compile("log");
@@ -27,6 +29,7 @@ fn main() {
         .define("_GNU_SOURCE", None)
         .flag("-Werror")
         .flag("-fno-stack-protector")
+        .flag("-ffunction-sections")
         .include("cc/include/")
         .file("cc/src/printf.c")
         .compile("printf");
@@ -35,6 +38,7 @@ fn main() {
         .define("_GNU_SOURCE", None)
         .flag("-Werror")
         .flag("-fno-stack-protector")
+        .flag("-ffunction-sections")
         .include("cc/include/")
         .file("cc/src/vasprintf.c")
         .compile("vasprintf");

@@ -1,5 +1,5 @@
 use {
-    crate::hooks::{asan_load, asan_panic, asan_store, size_t},
+    crate::{asan_load, asan_panic, asan_store, size_t},
     core::{
         ffi::{c_char, c_void},
         ptr::copy,
@@ -9,7 +9,6 @@ use {
 
 /// # Safety
 /// See man pages
-#[no_mangle]
 #[export_name = "patch_memmove"]
 pub unsafe extern "C" fn memmove(dest: *mut c_void, src: *const c_void, n: size_t) -> *mut c_void {
     trace!("memmove - dest: {:p}, src: {:p}, n: {:#x}", dest, src, n);

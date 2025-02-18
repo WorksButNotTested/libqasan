@@ -1,5 +1,5 @@
 use {
-    crate::hooks::{asan_panic, asan_store, size_t},
+    crate::{asan_panic, asan_store, size_t},
     core::{
         ffi::{c_char, c_void},
         ptr::write_bytes,
@@ -9,7 +9,6 @@ use {
 
 /// # Safety
 /// See man pages
-#[no_mangle]
 #[export_name = "patch_explicit_bzero"]
 pub unsafe extern "C" fn explicit_bzero(s: *mut c_void, len: size_t) {
     trace!("explicit_bzero - s: {:p}, len: {:#x}", s, len);

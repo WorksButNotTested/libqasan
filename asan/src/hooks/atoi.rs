@@ -1,5 +1,5 @@
 use {
-    crate::hooks::{asan_load, asan_panic},
+    crate::{asan_load, asan_panic},
     core::{
         ffi::{c_char, c_int, c_uint, c_void},
         slice::from_raw_parts,
@@ -9,7 +9,7 @@ use {
 
 /// # Safety
 /// See man pages
-#[no_mangle]
+#[cfg_attr(not(feature = "test"), no_mangle)]
 #[cfg_attr(feature = "test", export_name = "patch_atoi")]
 pub unsafe extern "C" fn atoi(s: *const c_char) -> c_int {
     trace!("atoi - s: {:p}", s);

@@ -1,5 +1,5 @@
 use {
-    crate::hooks::{asan_panic, asan_store, size_t, ssize_t},
+    crate::{asan_panic, asan_store, size_t, ssize_t},
     core::{
         ffi::{c_char, c_int, c_void},
         slice::from_raw_parts_mut,
@@ -10,7 +10,7 @@ use {
 
 /// # Safety
 /// See man pages
-#[no_mangle]
+#[cfg_attr(not(feature = "test"), no_mangle)]
 #[cfg_attr(feature = "test", export_name = "patch_read")]
 pub unsafe extern "C" fn read(fd: c_int, buf: *mut c_void, count: size_t) -> ssize_t {
     trace!("read - fd: {:#x}, buf: {:p}, count: {:#x}", fd, buf, count);

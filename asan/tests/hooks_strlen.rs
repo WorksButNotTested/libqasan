@@ -2,7 +2,7 @@
 #[cfg(feature = "hooks")]
 mod tests {
     use {
-        asan::hooks::{expect_panic, strlen::strlen},
+        asan::{expect_panic, hooks::strlen::strlen},
         core::{ffi::c_char, ptr::null},
     };
 

@@ -1,5 +1,5 @@
 use {
-    crate::hooks::{asan_load, asan_panic},
+    crate::{asan_load, asan_panic},
     core::{
         ffi::{c_char, c_void},
         ptr::copy,
@@ -9,7 +9,6 @@ use {
 
 /// # Safety
 /// See man pages
-#[no_mangle]
 #[export_name = "patch_strcat"]
 pub unsafe extern "C" fn strcat(s: *mut c_char, ct: *const c_char) -> *mut c_char {
     trace!("strcat - s: {:p}, ct: {:p}", s, ct);

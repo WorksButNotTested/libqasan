@@ -77,8 +77,66 @@ pub mod shadow;
 
 pub mod symbols;
 
+#[cfg(feature = "test")]
+pub mod test;
+
+#[cfg(feature = "test")]
+pub use test::*;
+
 pub mod tracking;
 
 extern crate alloc;
 
 pub type GuestAddr = usize;
+
+#[cfg(all(feature = "linux", not(feature = "libc")))]
+#[allow(non_camel_case_types)]
+pub type size_t = usize;
+
+#[cfg(feature = "libc")]
+#[allow(non_camel_case_types)]
+pub type size_t = libc::size_t;
+
+#[cfg(all(feature = "linux", not(feature = "libc")))]
+#[allow(non_camel_case_types)]
+pub type ssize_t = isize;
+
+#[cfg(feature = "libc")]
+#[allow(non_camel_case_types)]
+pub type ssize_t = libc::ssize_t;
+
+#[cfg(all(feature = "linux", not(feature = "libc")))]
+#[allow(non_camel_case_types)]
+pub type wchar_t = i32;
+
+#[cfg(feature = "libc")]
+#[allow(non_camel_case_types)]
+pub type wchar_t = libc::wchar_t;
+
+#[cfg(all(feature = "linux", not(feature = "libc")))]
+#[allow(non_camel_case_types)]
+pub type off_t = isize;
+
+#[cfg(feature = "libc")]
+#[allow(non_camel_case_types)]
+pub type off_t = libc::off_t;
+
+#[cfg(not(feature = "test"))]
+use ::core::ffi::{c_char, c_void};
+
+#[cfg(not(feature = "test"))]
+extern "C" {
+    pub fn asan_load(addr: *const c_void, size: usize);
+    pub fn asan_store(addr: *const c_void, size: usize);
+    pub fn asan_alloc(len: usize, align: usize) -> *mut c_void;
+    pub fn asan_dealloc(addr: *const c_void);
+    pub fn asan_get_size(addr: *const c_void) -> usize;
+    #[cfg(feature = "libc")]
+    pub fn asan_sym(name: *const c_char) -> GuestAddr;
+    pub fn asan_page_size() -> usize;
+    pub fn asan_unpoison(addr: *mut c_void, len: usize);
+    pub fn asan_track(addr: *mut c_void, len: usize);
+    pub fn asan_untrack(addr: *mut c_void);
+    pub fn asan_panic(msg: *const c_char) -> !;
+    pub fn asan_swap(enabled: bool);
+}

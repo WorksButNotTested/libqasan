@@ -1,5 +1,5 @@
 use {
-    crate::hooks::{asan_load, asan_panic, size_t},
+    crate::{asan_load, asan_panic, size_t},
     core::{
         ffi::{c_char, c_void},
         ptr::null_mut,
@@ -10,7 +10,6 @@ use {
 
 /// # Safety
 /// See man pages
-#[no_mangle]
 #[export_name = "patch_memmem"]
 pub unsafe extern "C" fn memmem(
     haystack: *const c_void,

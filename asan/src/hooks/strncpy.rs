@@ -1,5 +1,5 @@
 use {
-    crate::hooks::{asan_load, asan_panic, asan_store, size_t},
+    crate::{asan_load, asan_panic, asan_store, size_t},
     core::{
         ffi::{c_char, c_void},
         ptr::copy,
@@ -9,7 +9,6 @@ use {
 
 /// # Safety
 /// See man pages
-#[no_mangle]
 #[export_name = "patch_strncpy"]
 pub unsafe extern "C" fn strncpy(dst: *mut c_char, src: *const c_char, n: size_t) -> *mut c_char {
     trace!("strncpy - dst: {:p}, src: {:p}, n: {:#x}", dst, src, n);

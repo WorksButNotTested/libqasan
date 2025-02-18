@@ -1,5 +1,5 @@
 use {
-    crate::hooks::{asan_load, asan_panic, asan_store, size_t},
+    crate::{asan_load, asan_panic, asan_store, size_t},
     core::{
         ffi::{c_char, c_void},
         ptr::copy_nonoverlapping,
@@ -9,7 +9,6 @@ use {
 
 /// # Safety
 /// See man pages
-#[no_mangle]
 #[export_name = "patch_memcpy"]
 pub unsafe extern "C" fn memcpy(dest: *mut c_void, src: *const c_void, n: size_t) -> *mut c_void {
     trace!("memcpy - dest: {:p}, src: {:p}, n: {:#x}", dest, src, n);

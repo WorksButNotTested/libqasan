@@ -1,5 +1,5 @@
 use {
-    crate::hooks::{asan_load, asan_panic},
+    crate::{asan_load, asan_panic},
     alloc::vec::Vec,
     core::{
         ffi::{c_char, c_void},
@@ -11,7 +11,6 @@ use {
 
 /// # Safety
 /// See man pages
-#[no_mangle]
 #[export_name = "patch_strcasestr"]
 pub unsafe extern "C" fn strcasestr(cs: *const c_char, ct: *const c_char) -> *mut c_char {
     trace!("strcasestr - cs: {:p}, ct: {:p}", cs, ct);

@@ -1,5 +1,5 @@
 use {
-    crate::hooks::{asan_load, asan_panic, size_t},
+    crate::{asan_load, asan_panic, size_t},
     core::{
         ffi::{c_char, c_int, c_void},
         slice::from_raw_parts,
@@ -9,7 +9,6 @@ use {
 
 /// # Safety
 /// See man pages
-#[no_mangle]
 #[export_name = "patch_strncasecmp"]
 pub unsafe extern "C" fn strncasecmp(s1: *const c_char, s2: *const c_char, n: size_t) -> c_int {
     trace!("strncasecmp - s1: {:p}, s2: {:p}, n: {:#x}", s1, s2, n);

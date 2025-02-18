@@ -2,10 +2,12 @@
 #[cfg(feature = "libc")]
 mod tests {
     use asan::{
-        maps::{entry::MapEntry, iterator::MapIterator, linux::LinuxMapReader, MapReader}, mmap::MmapProt, symbols::{
+        maps::{entry::MapEntry, iterator::MapIterator, linux::LinuxMapReader, MapReader},
+        mmap::MmapProt,
+        symbols::{
             dlsym::{DlSymSymbols, LookupTypeNext},
             SymbolsLookupStr,
-        }
+        },
     };
     use itertools::Itertools;
 

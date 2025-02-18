@@ -2,7 +2,7 @@
 #[cfg(feature = "hooks")]
 mod tests {
     use {
-        asan::hooks::{expect_panic, strncpy::strncpy},
+        asan::{expect_panic, hooks::strncpy::strncpy},
         core::{
             ffi::c_char,
             ptr::{null, null_mut},

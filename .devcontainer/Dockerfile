@@ -52,8 +52,13 @@ RUN cargo binstall cargo-make
 # cargo-fuzz
 RUN cargo binstall -y cargo-fuzz
 
+# taplo
 RUN cargo binstall -y taplo-cli
 
 ENV LLVM_CONFIG=llvm-config-18
 
+# cargo-nextest
 RUN cargo binstall -y cargo-nextest
+
+# cargo-nextest
+RUN cargo binstall -y just

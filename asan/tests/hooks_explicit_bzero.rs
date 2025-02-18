@@ -2,7 +2,7 @@
 #[cfg(feature = "hooks")]
 mod tests {
     use {
-        asan::hooks::{expect_panic, explicit_bzero::explicit_bzero},
+        asan::{expect_panic, hooks::explicit_bzero::explicit_bzero},
         core::{ffi::c_void, ptr::null_mut},
     };
 

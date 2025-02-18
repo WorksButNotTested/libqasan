@@ -80,7 +80,7 @@ impl RawPatch {
             [0x0c, 0xf0, 0xa0, 0xe1].to_vec(),
             [0xce, 0xfa, 0xad, 0xde].to_vec(),
         ];
-        let addr = target.to_ne_bytes().to_vec();
+        let addr = destination.to_ne_bytes().to_vec();
         let insns_mod = [&insns[0], &insns[1], &addr];
         Ok(insns_mod.into_iter().flatten().cloned().collect())
     }
@@ -96,7 +96,7 @@ impl RawPatch {
             [0x0d, 0xd0, 0x0d, 0xf0].to_vec(),
             [0xce, 0xfa, 0xad, 0xde].to_vec(),
         ];
-        let addr = target.to_ne_bytes().to_vec();
+        let addr = destination.to_ne_bytes().to_vec();
         let insns_mod = [&insns[0], &insns[1], &addr];
         Ok(insns_mod.into_iter().flatten().cloned().collect())
     }
@@ -113,7 +113,7 @@ impl RawPatch {
             [0x7d, 0x89, 0x03, 0xa6].to_vec(),
             [0x4e, 0x80, 0x04, 0x20].to_vec(),
         ];
-        let addr = target.to_be_bytes().to_vec();
+        let addr = destination.to_be_bytes().to_vec();
         let insn0_mod = [insns[0][0], insns[0][1], addr[0], addr[1]].to_vec();
         let insn1_mod = [insns[1][0], insns[1][1], addr[2], addr[3]].to_vec();
         let insns_mod = [&insn0_mod, &insn1_mod, &insns[2], &insns[3]];

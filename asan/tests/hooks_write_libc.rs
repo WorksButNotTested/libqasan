@@ -2,7 +2,7 @@
 #[cfg(all(feature = "hooks", feature = "libc"))]
 mod tests {
     use {
-        asan::hooks::{expect_panic, size_t, write::libc::write},
+        asan::{expect_panic, hooks::write::libc::write, size_t},
         core::{ffi::c_void, ptr::null_mut},
     };
 

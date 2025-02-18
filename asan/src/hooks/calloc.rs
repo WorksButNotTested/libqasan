@@ -1,5 +1,5 @@
 use {
-    crate::hooks::{asan_alloc, asan_panic, size_t},
+    crate::{asan_alloc, asan_panic, size_t},
     core::{
         ffi::{c_char, c_void},
         ptr::{null_mut, write_bytes},
@@ -9,7 +9,7 @@ use {
 
 /// # Safety
 /// See man pages
-#[no_mangle]
+#[cfg_attr(not(feature = "test"), no_mangle)]
 #[cfg_attr(feature = "test", export_name = "patch_calloc")]
 pub unsafe extern "C" fn calloc(nobj: size_t, size: size_t) -> *mut c_void {
     trace!("calloc - nobj: {:#x}, size: {:#x}", nobj, size);

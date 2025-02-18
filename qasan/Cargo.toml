@@ -7,6 +7,8 @@ edition = "2021"
 crate-type = ["staticlib"]
 
 [features]
+default = []
+test = ["asan/test", "dummy_libc/test"]
 
 [dependencies]
 asan = { path = "../asan", default-features = false, features = [

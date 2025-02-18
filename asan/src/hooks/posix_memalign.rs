@@ -1,8 +1,5 @@
 use {
-    crate::{
-        hooks::{asan_alloc, asan_panic, size_t},
-        GuestAddr,
-    },
+    crate::{asan_alloc, asan_panic, size_t, GuestAddr},
     core::{
         ffi::{c_char, c_int, c_void},
         mem::size_of,
@@ -13,7 +10,7 @@ use {
 
 /// # Safety
 /// See man pages
-#[no_mangle]
+#[cfg_attr(not(feature = "test"), no_mangle)]
 #[cfg_attr(feature = "test", export_name = "patch_posix_memalign")]
 pub unsafe extern "C" fn posix_memalign(
     memptr: *mut *mut c_void,

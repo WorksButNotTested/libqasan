@@ -1,5 +1,5 @@
 use {
-    crate::hooks::{asan_alloc, asan_load, asan_panic, size_t},
+    crate::{asan_alloc, asan_load, asan_panic, size_t},
     core::{
         ffi::{c_char, c_void},
         ptr::copy,
@@ -9,7 +9,6 @@ use {
 
 /// # Safety
 /// See man pages
-#[no_mangle]
 #[export_name = "patch_strndup"]
 pub unsafe extern "C" fn strndup(cs: *const c_char, n: size_t) -> *mut c_char {
     trace!("strndup - cs: {:p}, n: {:#x}", cs, n);

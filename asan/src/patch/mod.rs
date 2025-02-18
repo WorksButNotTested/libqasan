@@ -1,9 +1,10 @@
 //! # patch
 //! This module provides implementations patching function prologues in order
 //! to re-direct execution to an alternative address.
-use alloc::fmt::Debug;
+use {crate::GuestAddr, alloc::fmt::Debug};
 
-use crate::GuestAddr;
+#[cfg(feature = "hooks")]
+pub mod hooks;
 
 pub mod raw;
 

@@ -2,7 +2,7 @@
 #[cfg(feature = "hooks")]
 mod tests {
     use {
-        asan::hooks::{atol::atol, expect_panic},
+        asan::{expect_panic, hooks::atol::atol},
         core::{ffi::c_char, ptr::null_mut},
         std::ffi::c_long,
     };

@@ -2,7 +2,7 @@
 #[cfg(feature = "hooks")]
 mod tests {
     use {
-        asan::hooks::{expect_panic, strcasecmp::strcasecmp},
+        asan::{expect_panic, hooks::strcasecmp::strcasecmp},
         core::{ffi::c_char, ptr::null},
     };
 

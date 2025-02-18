@@ -1,7 +1,8 @@
 use {
     crate::{
-        hooks::{size_t, ssize_t},
+        asan_swap,
         maps::MapReader,
+        size_t, ssize_t,
         symbols::{
             AtomicGuestAddr, Function, FunctionPointer, FunctionPointerError, Symbols,
             SymbolsLookupStr,
@@ -100,7 +101,9 @@ impl<S: Symbols> LibcMapReader<S> {
     }
 
     fn errno() -> Result<c_int, LibcMapReaderError<S>> {
+        unsafe { asan_swap(false) };
         let errno_location = Self::get_errno_location()?;
+        unsafe { asan_swap(true) };
         let errno = unsafe { *errno_location() };
         Ok(errno)
     }
@@ -111,6 +114,7 @@ impl<S: Symbols> MapReader for LibcMapReader<S> {
 
     fn new() -> Result<LibcMapReader<S>, LibcMapReaderError<S>> {
         let fn_open = Self::get_open()?;
+        unsafe { asan_swap(false) };
         let fd = unsafe {
             fn_open(
                 c"/proc/self/maps".as_ptr() as *const c_char,
@@ -118,6 +122,7 @@ impl<S: Symbols> MapReader for LibcMapReader<S> {
                 0,
             )
         };
+        unsafe { asan_swap(true) };
         if fd < 0 {
             let errno = Self::errno().unwrap();
             return Err(LibcMapReaderError::FailedToOpen(errno));
@@ -130,7 +135,9 @@ impl<S: Symbols> MapReader for LibcMapReader<S> {
 
     fn read(&mut self, buf: &mut [u8]) -> Result<usize, Self::Error> {
         let fn_read = Self::get_read()?;
+        unsafe { asan_swap(false) };
         let ret = unsafe { fn_read(self.fd, buf.as_mut_ptr() as *mut c_char, buf.len()) };
+        unsafe { asan_swap(true) };
         if ret < 0 {
             let errno = Self::errno().unwrap();
             return Err(LibcMapReaderError::FailedToRead(self.fd, errno));
@@ -142,7 +149,10 @@ impl<S: Symbols> MapReader for LibcMapReader<S> {
 impl<S: Symbols> Drop for LibcMapReader<S> {
     fn drop(&mut self) {
         let fn_close = Self::get_close().unwrap();
-        if unsafe { fn_close(self.fd) } < 0 {
+        unsafe { asan_swap(false) };
+        let ret = unsafe { fn_close(self.fd) };
+        unsafe { asan_swap(true) };
+        if ret < 0 {
             let errno = Self::errno().unwrap();
             panic!("Failed to close: {}, Errno: {}", self.fd, errno);
         }

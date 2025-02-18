@@ -1,8 +1,5 @@
 use {
-    crate::{
-        hooks::{asan_track, asan_unpoison, off_t, size_t},
-        GuestAddr,
-    },
+    crate::{asan_track, asan_unpoison, off_t, size_t, GuestAddr},
     core::ffi::{c_int, c_void},
     log::trace,
     rustix::{
@@ -13,7 +10,7 @@ use {
 
 /// # Safety
 /// See man pages
-#[no_mangle]
+#[cfg_attr(not(feature = "test"), no_mangle)]
 #[cfg_attr(feature = "test", export_name = "patch_mmap")]
 pub unsafe extern "C" fn mmap(
     addr: *mut c_void,

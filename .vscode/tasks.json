@@ -4,10 +4,14 @@
         {
             "label": "Build - Debug (arm)",
             "type": "shell",
-            "command": "cargo make -p arm_dev",
+            "command": "just build",
             "group": "build",
             "options": {
-                "cwd": "${workspaceFolder}"
+                "cwd": "${workspaceFolder}",
+                "env" : {
+                    "ARCH": "arm",
+                    "PROFILE": "dev"
+                }
             },
             "presentation": {
                 "clear": true,
@@ -18,10 +22,14 @@
         {
             "label": "Build - Release (arm)",
             "type": "shell",
-            "command": "cargo make -p arm_release",
+            "command": "just build",
             "group": "build",
             "options": {
-                "cwd": "${workspaceFolder}"
+                "cwd": "${workspaceFolder}",
+                "env" : {
+                    "ARCH": "arm",
+                    "PROFILE": "release"
+                }
             },
             "presentation": {
                 "clear": true,
@@ -32,10 +40,14 @@
         {
             "label": "Build - Debug (aarch64)",
             "type": "shell",
-            "command": "cargo make -p aarch64_dev",
+            "command": "just build",
             "group": "build",
             "options": {
-                "cwd": "${workspaceFolder}"
+                "cwd": "${workspaceFolder}",
+                "env" : {
+                    "ARCH": "aarch64",
+                    "PROFILE": "dev"
+                }
             },
             "presentation": {
                 "clear": true,
@@ -46,10 +58,14 @@
         {
             "label": "Build - Release (aarch64)",
             "type": "shell",
-            "command": "cargo make -p aarch64_release",
+            "command": "just build",
             "group": "build",
             "options": {
-                "cwd": "${workspaceFolder}"
+                "cwd": "${workspaceFolder}",
+                "env" : {
+                    "ARCH": "aarch64",
+                    "PROFILE": "release"
+                }
             },
             "presentation": {
                 "clear": true,
@@ -60,10 +76,14 @@
         {
             "label": "Build - Debug (x64)",
             "type": "shell",
-            "command": "cargo make",
+            "command": "just build",
             "group": "build",
             "options": {
-                "cwd": "${workspaceFolder}"
+                "cwd": "${workspaceFolder}",
+                "env" : {
+                    "ARCH": "x86_64",
+                    "PROFILE": "dev"
+                }
             },
             "presentation": {
                 "clear": true,
@@ -74,10 +94,14 @@
         {
             "label": "Build - Release (x64)",
             "type": "shell",
-            "command": "cargo make -p x64_release",
+            "command": "just build",
             "group": "build",
             "options": {
-                "cwd": "${workspaceFolder}"
+                "cwd": "${workspaceFolder}",
+                "env" : {
+                    "ARCH": "x86_64",
+                    "PROFILE": "release"
+                }
             },
             "presentation": {
                 "clear": true,
@@ -88,10 +112,14 @@
         {
             "label": "Build - Debug (i686)",
             "type": "shell",
-            "command": "cargo make -p i686_dev",
+            "command": "just build",
             "group": "build",
             "options": {
-                "cwd": "${workspaceFolder}"
+                "cwd": "${workspaceFolder}",
+                "env" : {
+                    "ARCH": "x86",
+                    "PROFILE": "dev"
+                }
             },
             "presentation": {
                 "clear": true,
@@ -102,10 +130,14 @@
         {
             "label": "Build - Release (i686)",
             "type": "shell",
-            "command": "cargo make -p i686_release",
+            "command": "just build",
             "group": "build",
             "options": {
-                "cwd": "${workspaceFolder}"
+                "cwd": "${workspaceFolder}",
+                "env" : {
+                    "ARCH": "x86",
+                    "PROFILE": "release"
+                }
             },
             "presentation": {
                 "clear": true,
@@ -116,10 +148,14 @@
         {
             "label": "Build - Debug (powerpc)",
             "type": "shell",
-            "command": "cargo make -p powerpc_dev",
+            "command": "just build",
             "group": "build",
             "options": {
-                "cwd": "${workspaceFolder}"
+                "cwd": "${workspaceFolder}",
+                "env" : {
+                    "ARCH": "powerpc",
+                    "PROFILE": "dev"
+                }
             },
             "presentation": {
                 "clear": true,
@@ -130,10 +166,14 @@
         {
             "label": "Build - Release (powerpc)",
             "type": "shell",
-            "command": "cargo make -p powerpc_release",
+            "command": "just build",
             "group": "build",
             "options": {
-                "cwd": "${workspaceFolder}"
+                "cwd": "${workspaceFolder}",
+                "env" : {
+                    "ARCH": "powerpc",
+                    "PROFILE": "release"
+                }
             },
             "presentation": {
                 "clear": true,
@@ -184,13 +224,15 @@
         {
             "label": "Build - Test (arm)",
             "type": "shell",
-            "command": "cargo make -p arm_dev test",
+            "command": "just test",
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}",
                 "env": {
                     "RUST_LOG": "debug",
                     "RUST_BACKTRACE": "1",
+                    "ARCH": "arm",
+                    "PROFILE": "dev"
                 }
             },
             "presentation": {
@@ -202,13 +244,15 @@
         {
             "label": "Build - Test (aarch64)",
             "type": "shell",
-            "command": "cargo make -p aarch64_dev test",
+            "command": "just test",
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}",
                 "env": {
                     "RUST_LOG": "debug",
                     "RUST_BACKTRACE": "1",
+                    "ARCH": "aarch64",
+                    "PROFILE": "dev"
                 }
             },
             "presentation": {
@@ -220,13 +264,15 @@
         {
             "label": "Build - Test (i686)",
             "type": "shell",
-            "command": "cargo make -p i686_dev test",
+            "command": "just test",
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}",
                 "env": {
                     "RUST_LOG": "debug",
                     "RUST_BACKTRACE": "1",
+                    "ARCH": "x86",
+                    "PROFILE": "dev"
                 }
             },
             "presentation": {
@@ -238,13 +284,15 @@
         {
             "label": "Build - Test (x64)",
             "type": "shell",
-            "command": "cargo make -p x64_dev test",
+            "command": "just test",
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}",
                 "env": {
                     "RUST_LOG": "debug",
                     "RUST_BACKTRACE": "1",
+                    "ARCH": "x86_64",
+                    "PROFILE": "dev"
                 }
             },
             "presentation": {
@@ -256,13 +304,15 @@
         {
             "label": "Build - Test (powerpc)",
             "type": "shell",
-            "command": "cargo make -p powerpc_dev test",
+            "command": "just test",
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}",
                 "env": {
                     "RUST_LOG": "debug",
                     "RUST_BACKTRACE": "1",
+                    "ARCH": "powerpc",
+                    "PROFILE": "dev"
                 }
             },
             "presentation": {
@@ -312,13 +362,14 @@
         {
             "label": "Fuzz guest-shadow - (Debug)",
             "type": "shell",
-            "command": "cargo make fuzz-guest-shadow-debug",
+            "command": "just fuzz_guest_shadow",
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}",
                 "env": {
                     "RUST_LOG": "debug",
                     "RUST_BACKTRACE": "1",
+                    "PROFILE": "dev"
                 }
             },
             "presentation": {
@@ -330,10 +381,13 @@
         {
             "label": "Fuzz guest-shadow - (Release)",
             "type": "shell",
-            "command": "cargo make fuzz-guest-shadow-release",
+            "command": "just fuzz_guest_shadow",
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}",
+                "env": {
+                    "PROFILE": "release"
+                }
             },
             "presentation": {
                 "clear": true,
@@ -344,13 +398,14 @@
         {
             "label": "Fuzz guest-tracking - (Debug)",
             "type": "shell",
-            "command": "cargo make fuzz-guest-tracking-debug",
+            "command": "just fuzz_guest_tracking",
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}",
                 "env": {
                     "RUST_LOG": "debug",
                     "RUST_BACKTRACE": "1",
+                    "PROFILE": "dev"
                 }
             },
             "presentation": {
@@ -362,10 +417,13 @@
         {
             "label": "Fuzz guest-tracking - (Release)",
             "type": "shell",
-            "command": "cargo make fuzz-guest-tracking-release",
+            "command": "just fuzz_guest_tracking",
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}",
+                "env": {
+                    "PROFILE": "release"
+                }
             },
             "presentation": {
                 "clear": true,
@@ -376,13 +434,14 @@
         {
             "label": "Fuzz default-frontend-mock - (Debug)",
             "type": "shell",
-            "command": "cargo make fuzz-default-frontend-mock-debug",
+            "command": "just fuzz_default_frontend_mock",
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}",
                 "env": {
                     "RUST_LOG": "debug",
                     "RUST_BACKTRACE": "1",
+                    "PROFILE": "dev"
                 }
             },
             "presentation": {
@@ -394,10 +453,13 @@
         {
             "label": "Fuzz default-frontend-mock - (Release)",
             "type": "shell",
-            "command": "cargo make fuzz-default-frontend-mock-release",
+            "command": "just fuzz_default_frontend_mock",
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}",
+                "env": {
+                    "PROFILE": "release"
+                }
             },
             "presentation": {
                 "clear": true,
@@ -408,13 +470,14 @@
         {
             "label": "Fuzz default-frontend-dlmalloc - (Debug)",
             "type": "shell",
-            "command": "cargo make fuzz-default-frontend-dlmalloc-debug",
+            "command": "just fuzz_default_frontend_dlmalloc",
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}",
                 "env": {
                     "RUST_LOG": "debug",
                     "RUST_BACKTRACE": "1",
+                    "PROFILE": "dev"
                 }
             },
             "presentation": {
@@ -426,10 +489,13 @@
         {
             "label": "Fuzz default-frontend-dlmalloc - (Release)",
             "type": "shell",
-            "command": "cargo make fuzz-default-frontend-dlmalloc-release",
+            "command": "just fuzz_default_frontend_dlmalloc",
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}",
+                "env": {
+                    "PROFILE": "release"
+                }
             },
             "presentation": {
                 "clear": true,
@@ -458,7 +524,7 @@
         {
             "label": "Pretty Rust",
             "type": "shell",
-            "command": "cargo fmt",
+            "command": "just pretty_rust",
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -473,7 +539,7 @@
         {
             "label": "Pretty TOML",
             "type": "shell",
-            "command": "taplo fmt",
+            "command": "just pretty_toml",
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -488,7 +554,7 @@
         {
             "label": "Fix",
             "type": "shell",
-            "command": "cargo fix --allow-dirty",
+            "command": "just fix",
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}",
@@ -502,7 +568,7 @@
         {
             "label": "Clippy",
             "type": "shell",
-            "command": "cargo clippy",
+            "command": "just clippy",
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}",
@@ -516,7 +582,7 @@
         {
             "label": "Doc",
             "type": "shell",
-            "command": "cargo doc",
+            "command": "just doc",
             "group": "build",
             "options": {
                 "cwd": "${workspaceFolder}"

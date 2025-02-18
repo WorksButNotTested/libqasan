@@ -2,7 +2,7 @@
 #[cfg(feature = "hooks")]
 mod tests {
     use {
-        asan::hooks::{expect_panic, memalign::memalign},
+        asan::{expect_panic, hooks::memalign::memalign},
         core::{ptr::null_mut, slice::from_raw_parts_mut},
     };
 

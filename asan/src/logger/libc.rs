@@ -1,5 +1,6 @@
 use {
     crate::{
+        asan_swap,
         symbols::{Function, FunctionPointer, Symbols, SymbolsLookupStr},
         GuestAddr,
     },
@@ -53,6 +54,7 @@ impl Log for LibcLogger {
             );
             let buf = formatted.as_bytes();
             let fn_write = FunctionWrite::as_ptr(self.write).unwrap();
+            unsafe { asan_swap(false) };
             unsafe {
                 fn_write(
                     STDERR_FILENO,
@@ -60,6 +62,7 @@ impl Log for LibcLogger {
                     buf.len() as size_t,
                 )
             };
+            unsafe { asan_swap(true) };
         }
     }
 }

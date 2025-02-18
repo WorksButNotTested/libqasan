@@ -1,0 +1,42 @@
+import "../just/env.just"
+
+ASAN_SOURCE_DIR := source_directory()
+
+[unix]
+compile_asan:
+  #!/bin/bash
+  source {{ DOTENV }}
+  cargo \
+    +${CHANNEL} \
+    build \
+    --package asan \
+    --target ${TARGET} \
+    --profile {{ PROFILE }} \
+    --target-dir {{ TARGET_DIR }}
+
+[unix]
+fix_asan:
+  #!/bin/bash
+  source {{ DOTENV }}
+  cargo \
+    +${CHANNEL} \
+    fix \
+    --package asan \
+    --target ${TARGET} \
+    --profile {{ PROFILE }} \
+    --target-dir {{ TARGET_DIR }} \
+    --allow-dirty
+
+[unix]
+test_asan:
+  #!/bin/bash
+  source {{ DOTENV }}
+  cd {{ ASAN_SOURCE_DIR }}
+  cargo \
+    +${CHANNEL} \
+    nextest \
+    run \
+    --target ${TARGET}
+
+[unix]
+build_asan: compile_asan

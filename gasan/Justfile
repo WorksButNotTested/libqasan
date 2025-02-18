@@ -1,0 +1,80 @@
+import "../just/env.just"
+import "../dummy_libc/Justfile"
+
+GASAN_SOURCE_DIR := source_directory()
+
+[unix]
+compile_gasan:
+	#!/bin/bash
+	source {{ DOTENV }}
+	cargo \
+		+${CHANNEL} \
+		build \
+		--package gasan \
+		--target ${TARGET} \
+		--profile {{ PROFILE }} \
+		--target-dir {{ TARGET_DIR }}
+
+[unix]
+fix_gasan:
+	#!/bin/bash
+	source {{ DOTENV }}
+	cargo \
+		+${CHANNEL} \
+		fix \
+		--package gasan \
+		--target ${TARGET} \
+		--profile {{ PROFILE }} \
+		--target-dir {{ TARGET_DIR }} \
+		--features test \
+		--allow-dirty
+
+[unix]
+link_gasan: compile_gasan build_dummy
+	#!/bin/bash
+	source {{ DOTENV }}
+	${ASAN_CC} \
+		${ASAN_CFLAGS} \
+		-shared \
+		-nodefaultlibs \
+		-nostartfiles \
+		-nostdlib \
+		-g \
+		-u aligned_alloc \
+		-u atoi \
+		-u atol \
+		-u atoll \
+		-u calloc \
+		-u free \
+		-u malloc \
+		-u malloc_usable_size \
+		-u memalign \
+		-u memset \
+		-u mmap \
+		-u munmap \
+		-u posix_memalign \
+		-u pvalloc \
+		-u read \
+		-u realloc \
+		-u reallocarray \
+		-u valloc \
+		-u write \
+		-o {{ TARGET_DIR }}/$TARGET/{{ PROFILE_DIR }}/_libgasan.so \
+		-Wl,--version-script={{ GASAN_SOURCE_DIR }}/gasan.map \
+		-Wl,--gc-sections \
+		-Wl,--no-undefined \
+		{{ TARGET_DIR }}/$TARGET/{{ PROFILE_DIR }}/libgasan.a \
+		-L {{ TARGET_DIR }}/$TARGET/{{ PROFILE_DIR }} \
+		"-ldummy_libc"
+
+[unix]
+strip_gasan: link_gasan
+	#!/bin/bash
+	source {{ DOTENV }}
+	${ASAN_STRIP} \
+		--strip-unneeded \
+		-o {{ TARGET_DIR }}/$TARGET/{{ PROFILE_DIR }}/libgasan.so \
+		{{ TARGET_DIR }}/$TARGET/{{ PROFILE_DIR }}/_libgasan.so
+
+[unix]
+build_gasan: strip_gasan

@@ -7,7 +7,7 @@ edition = "2021"
 crate-type = ["staticlib"]
 
 [features]
-default = ["panic"]
-panic = []
+default = []
+test = []
 
 [dependencies]

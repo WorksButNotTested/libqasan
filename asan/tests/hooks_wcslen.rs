@@ -2,7 +2,7 @@
 #[cfg(feature = "hooks")]
 mod tests {
     use {
-        asan::hooks::{expect_panic, wchar_t, wcslen::wcslen},
+        asan::{expect_panic, hooks::wcslen::wcslen, wchar_t},
         core::ptr::null,
         widestring::widecstr,
     };

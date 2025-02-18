@@ -4,7 +4,7 @@
 //! conventional symbol lookup is not possible, e.g. if libc is statically
 //! linked
 use {
-    crate::{hooks::PatchesCheckError, GuestAddr},
+    crate::GuestAddr,
     alloc::fmt::Debug,
     core::{
         ffi::{c_char, c_void, CStr},
@@ -15,7 +15,7 @@ use {
 };
 
 #[cfg(feature = "hooks")]
-use crate::hooks::Patches;
+use crate::patch::hooks::{PatchedHooks, PatchesCheckError};
 
 #[cfg(feature = "libc")]
 pub mod dlsym;
@@ -110,7 +110,7 @@ impl<T: Function> FunctionPointer for T {
         }
 
         #[cfg(feature = "hooks")]
-        Patches::check_patched(addr).map_err(|e| FunctionPointerError::PatchedAddress(e))?;
+        PatchedHooks::check_patched(addr).map_err(FunctionPointerError::PatchedAddress)?;
 
         let pp_sym = (&addr) as *const GuestAddr as *const *mut c_void;
         let p_f = pp_sym as *const Self::Func;
@@ -123,6 +123,7 @@ impl<T: Function> FunctionPointer for T {
 pub enum FunctionPointerError {
     #[error("Bad address: {0}")]
     BadAddress(GuestAddr),
+    #[cfg(feature = "hooks")]
     #[error("Patched address: {0}")]
     PatchedAddress(PatchesCheckError),
 }

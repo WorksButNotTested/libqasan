@@ -1,5 +1,5 @@
 use {
-    crate::hooks::{asan_load, asan_panic},
+    crate::{asan_load, asan_panic},
     core::{
         cmp::Ordering,
         ffi::{c_char, c_int, c_void},
@@ -10,7 +10,6 @@ use {
 
 /// # Safety
 /// See man pages
-#[no_mangle]
 #[export_name = "patch_strcmp"]
 pub unsafe extern "C" fn strcmp(cs: *const c_char, ct: *const c_char) -> c_int {
     trace!("strcmp - cs: {:p}, ct: {:p}", cs, ct);

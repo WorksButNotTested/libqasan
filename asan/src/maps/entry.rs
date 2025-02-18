@@ -49,6 +49,7 @@ impl Debug for MapEntry {
 }
 
 impl MapEntry {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         base: GuestAddr,
         limit: GuestAddr,
@@ -86,7 +87,7 @@ impl MapEntry {
     }
 
     fn len(&self) -> usize {
-        (self.limit - self.base) as usize
+        self.limit - self.base
     }
 
     pub fn prot(&self) -> MmapProt {
@@ -112,7 +113,7 @@ impl MapEntry {
             M::protect(self.base(), self.len(), self.prot() | MmapProt::WRITE)?;
         }
         Ok(WriteableMapProtection {
-            map_entry: &self,
+            map_entry: self,
             _phantom: PhantomData,
         })
     }
@@ -123,7 +124,7 @@ pub struct WriteableMapProtection<'a, M: Mmap> {
     _phantom: PhantomData<M>,
 }
 
-impl<'a, M: Mmap> Drop for WriteableMapProtection<'a, M> {
+impl<M: Mmap> Drop for WriteableMapProtection<'_, M> {
     fn drop(&mut self) {
         if !self.map_entry.write {
             M::protect(

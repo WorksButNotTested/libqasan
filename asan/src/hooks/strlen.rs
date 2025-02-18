@@ -1,12 +1,11 @@
 use {
-    crate::hooks::{asan_load, asan_panic, size_t},
+    crate::{asan_load, asan_panic, size_t},
     core::ffi::{c_char, c_void},
     log::trace,
 };
 
 /// # Safety
 /// See man pages
-#[no_mangle]
 #[export_name = "patch_strlen"]
 pub unsafe extern "C" fn strlen(cs: *const c_char) -> size_t {
     trace!("strlen - cs: {:p}", cs);

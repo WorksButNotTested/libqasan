@@ -1,8 +1,8 @@
-#![no_std]
-use core::{
-    ffi::{c_char, c_void},
-    panic::PanicInfo,
-};
+#![cfg_attr(not(feature = "test"), no_std)]
+use core::ffi::{c_char, c_void};
+
+#[cfg(not(feature = "test"))]
+use core::panic::PanicInfo;
 
 /// # Safety
 /// See man pages
@@ -19,6 +19,7 @@ pub unsafe extern "C" fn dlerror() -> *mut c_char {
 }
 
 #[panic_handler]
+#[cfg(not(feature = "test"))]
 fn panic(_info: &PanicInfo) -> ! {
     unimplemented!()
 }

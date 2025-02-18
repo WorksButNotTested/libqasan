@@ -2,7 +2,7 @@
 #[cfg(all(feature = "hooks"))]
 mod tests {
     use {
-        asan::hooks::{expect_panic, reallocarray::reallocarray, size_t},
+        asan::{expect_panic, hooks::reallocarray::reallocarray, size_t},
         core::{ptr::null_mut, slice::from_raw_parts_mut},
     };
 

@@ -1,5 +1,5 @@
 use {
-    crate::hooks::{asan_load, asan_panic},
+    crate::{asan_load, asan_panic},
     core::{
         ffi::{c_char, c_int, c_void},
         slice::from_raw_parts,
@@ -9,7 +9,6 @@ use {
 
 /// # Safety
 /// See man pages
-#[no_mangle]
 #[export_name = "patch_strcasecmp"]
 pub unsafe extern "C" fn strcasecmp(s1: *const c_char, s2: *const c_char) -> c_int {
     trace!("strcasecmp - s1: {:p}, s2: {:p}", s1, s2);

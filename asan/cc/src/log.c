@@ -15,3 +15,9 @@ void trace(const char* fmt, ...) {
   }
   va_end(va);
 }
+
+#ifdef __powerpc__
+void _putchar(char c) {
+  (void)c;
+}
+#endif

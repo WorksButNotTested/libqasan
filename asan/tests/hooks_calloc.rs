@@ -2,7 +2,7 @@
 #[cfg(feature = "hooks")]
 mod tests {
     use {
-        asan::hooks::{calloc::calloc, expect_panic, size_t},
+        asan::{expect_panic, hooks::calloc::calloc, size_t},
         core::ptr::null_mut,
     };
 

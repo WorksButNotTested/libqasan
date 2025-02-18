@@ -1,6 +1,6 @@
 use {
     crate::{
-        hooks::{asan_sym, asan_track, asan_unpoison, off_t, size_t},
+        asan_swap, asan_sym, asan_track, asan_unpoison, off_t, size_t,
         symbols::{AtomicGuestAddr, Function, FunctionPointer},
     },
     core::ffi::{c_char, CStr},
@@ -27,7 +27,7 @@ static MMAP_ADDR: AtomicGuestAddr = AtomicGuestAddr::new();
 
 /// # Safety
 /// See man pages
-#[no_mangle]
+#[cfg_attr(not(feature = "test"), no_mangle)]
 #[cfg_attr(feature = "test", export_name = "patch_mmap")]
 pub unsafe extern "C" fn mmap(
     addr: *mut c_void,
@@ -48,8 +48,10 @@ pub unsafe extern "C" fn mmap(
     );
     let mmap_addr =
         MMAP_ADDR.get_or_insert_with(|| asan_sym(FunctionMmap::NAME.as_ptr() as *const c_char));
-    let mmap = FunctionMmap::as_ptr(mmap_addr).unwrap();
-    let map = mmap(addr, len, prot, flags, fd, offset);
+    asan_swap(false);
+    let fn_mmap = FunctionMmap::as_ptr(mmap_addr).unwrap();
+    asan_swap(true);
+    let map = fn_mmap(addr, len, prot, flags, fd, offset);
     if map == libc::MAP_FAILED {
         return libc::MAP_FAILED;
     }

@@ -1,5 +1,5 @@
 use {
-    crate::hooks::{asan_alloc, asan_dealloc, asan_get_size, asan_load, size_t},
+    crate::{asan_alloc, asan_dealloc, asan_get_size, asan_load, size_t},
     core::{
         ffi::c_void,
         ptr::{copy_nonoverlapping, null_mut},
@@ -9,7 +9,7 @@ use {
 
 /// # Safety
 /// See man pages
-#[no_mangle]
+#[cfg_attr(not(feature = "test"), no_mangle)]
 #[cfg_attr(feature = "test", export_name = "patch_realloc")]
 pub unsafe extern "C" fn realloc(p: *mut c_void, size: size_t) -> *mut c_void {
     trace!("realloc - p: {:p}, size: {:#x}", p, size);

@@ -2,7 +2,7 @@
 #[cfg(feature = "hooks")]
 mod tests {
     use {
-        asan::hooks::{expect_panic, memrchr::memrchr},
+        asan::{expect_panic, hooks::memrchr::memrchr},
         core::{
             ffi::{c_int, c_void},
             ptr::null_mut,

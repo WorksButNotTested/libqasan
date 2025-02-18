@@ -5,17 +5,9 @@ use {
             frontend::{default::DefaultFrontend, AllocatorFrontend},
         },
         exit::exit,
-        logger::linux::LinuxLogger,
-        mmap::linux::LinuxMmap,
-        shadow::{
-            guest::{DefaultShadowLayout, GuestShadow},
-            Shadow,
-        },
-        symbols::{
-            dlsym::{DlSymSymbols, LookupTypeNext},
-            Symbols,
-        },
-        tracking::{guest::GuestTracking, Tracking},
+        shadow::Shadow,
+        symbols::Symbols,
+        tracking::Tracking,
         GuestAddr,
     },
     core::{
@@ -26,21 +18,60 @@ use {
     spin::{Lazy, Mutex},
 };
 
-pub type TestFrontend = DefaultFrontend<
-    DlmallocBackend<LinuxMmap>,
-    GuestShadow<LinuxMmap, DefaultShadowLayout>,
-    GuestTracking,
->;
+#[cfg(not(feature = "libc"))]
+type TestSyms = crate::symbols::nop::NopSymbols;
 
-pub type TestSyms = DlSymSymbols<LookupTypeNext>;
+#[cfg(feature = "libc")]
+type TestSyms = crate::symbols::dlsym::DlSymSymbols<crate::symbols::dlsym::LookupTypeNext>;
+
+#[cfg(all(feature = "linux", not(feature = "libc")))]
+type TestMap = crate::mmap::linux::LinuxMmap;
+
+#[cfg(feature = "libc")]
+type TestMap = crate::mmap::libc::LibcMmap<TestSyms>;
+
+#[cfg(all(feature = "libc", not(feature = "guest"), feature = "host"))]
+type TestHost = crate::host::libc::LibcHost<TestSyms>;
+
+#[cfg(all(
+    feature = "linux",
+    not(feature = "libc"),
+    not(feature = "guest"),
+    feature = "host"
+))]
+type TestHost = crate::host::linux::LinuxHost;
+
+#[cfg(feature = "guest")]
+type TestShadow =
+    crate::shadow::guest::GuestShadow<TestMap, crate::shadow::guest::DefaultShadowLayout>;
+
+#[cfg(feature = "guest")]
+type TestTracking = crate::tracking::guest::GuestTracking;
+
+#[cfg(all(not(feature = "guest"), feature = "host"))]
+type TestTracking = crate::tracking::host::HostTracking<TestHost>;
+
+#[cfg(all(not(feature = "guest"), feature = "host"))]
+type TestShadow = crate::shadow::host::HostShadow<TestHost>;
+
+#[cfg(all(feature = "linux", not(feature = "libc")))]
+use crate::logger::linux::LinuxLogger;
+
+#[cfg(feature = "libc")]
+use crate::logger::libc::LibcLogger;
+
+pub type TestFrontend = DefaultFrontend<DlmallocBackend<TestMap>, TestShadow, TestTracking>;
 
 const PAGE_SIZE: usize = 4096;
 
 static FRONTEND: Lazy<Mutex<TestFrontend>> = Lazy::new(|| {
+    #[cfg(all(feature = "linux", not(feature = "libc")))]
     LinuxLogger::initialize(Level::Info);
-    let backend = DlmallocBackend::<LinuxMmap>::new(PAGE_SIZE);
-    let shadow = GuestShadow::<LinuxMmap, DefaultShadowLayout>::new().unwrap();
-    let tracking = GuestTracking::new().unwrap();
+    #[cfg(feature = "libc")]
+    LibcLogger::initialize::<TestSyms>(Level::Info);
+    let backend = DlmallocBackend::<TestMap>::new(PAGE_SIZE);
+    let shadow = TestShadow::new().unwrap();
+    let tracking = TestTracking::new().unwrap();
     let frontend = TestFrontend::new(
         backend,
         shadow,
@@ -53,7 +84,8 @@ static FRONTEND: Lazy<Mutex<TestFrontend>> = Lazy::new(|| {
 });
 
 #[no_mangle]
-pub extern "C" fn asan_load(addr: *const c_void, size: usize) {
+/// # Safety
+pub unsafe extern "C" fn asan_load(addr: *const c_void, size: usize) {
     trace!("load - addr: 0x{:x}, size: {:#x}", addr as GuestAddr, size);
     if FRONTEND
         .lock()
@@ -66,7 +98,8 @@ pub extern "C" fn asan_load(addr: *const c_void, size: usize) {
 }
 
 #[no_mangle]
-pub extern "C" fn asan_store(addr: *const c_void, size: usize) {
+/// # Safety
+pub unsafe extern "C" fn asan_store(addr: *const c_void, size: usize) {
     trace!("store - addr: 0x{:x}, size: {:#x}", addr as GuestAddr, size);
     if FRONTEND
         .lock()
@@ -79,7 +112,8 @@ pub extern "C" fn asan_store(addr: *const c_void, size: usize) {
 }
 
 #[no_mangle]
-pub extern "C" fn asan_alloc(len: usize, align: usize) -> *mut c_void {
+/// # Safety
+pub unsafe extern "C" fn asan_alloc(len: usize, align: usize) -> *mut c_void {
     trace!("alloc - len: {:#x}, align: {:#x}", len, align);
     let ptr = FRONTEND.lock().alloc(len, align).unwrap() as *mut c_void;
     trace!(
@@ -92,29 +126,34 @@ pub extern "C" fn asan_alloc(len: usize, align: usize) -> *mut c_void {
 }
 
 #[no_mangle]
-pub extern "C" fn asan_dealloc(addr: *const c_void) {
+/// # Safety
+pub unsafe extern "C" fn asan_dealloc(addr: *const c_void) {
     trace!("free - addr: {:p}", addr);
     FRONTEND.lock().dealloc(addr as GuestAddr).unwrap();
 }
 
 #[no_mangle]
-pub extern "C" fn asan_get_size(addr: *const c_void) -> usize {
+/// # Safety
+pub unsafe extern "C" fn asan_get_size(addr: *const c_void) -> usize {
     trace!("get_size - addr: {:p}", addr);
     FRONTEND.lock().get_size(addr as GuestAddr).unwrap()
 }
 
 #[no_mangle]
-pub extern "C" fn asan_sym(name: *const c_char) -> GuestAddr {
+/// # Safety
+pub unsafe extern "C" fn asan_sym(name: *const c_char) -> GuestAddr {
     TestSyms::lookup(name).unwrap()
 }
 
 #[no_mangle]
-pub extern "C" fn asan_page_size() -> usize {
+/// # Safety
+pub unsafe extern "C" fn asan_page_size() -> usize {
     PAGE_SIZE
 }
 
 #[no_mangle]
-pub extern "C" fn asan_unpoison(addr: *const c_void, len: usize) {
+/// # Safety
+pub unsafe extern "C" fn asan_unpoison(addr: *const c_void, len: usize) {
     trace!("unpoison - addr: {:p}, len: {:#x}", addr, len);
     FRONTEND
         .lock()
@@ -124,7 +163,8 @@ pub extern "C" fn asan_unpoison(addr: *const c_void, len: usize) {
 }
 
 #[no_mangle]
-pub extern "C" fn asan_track(addr: *const c_void, len: usize) {
+/// # Safety
+pub unsafe extern "C" fn asan_track(addr: *const c_void, len: usize) {
     trace!("track - addr: {:p}, len: {:#x}", addr, len);
     FRONTEND
         .lock()
@@ -134,7 +174,8 @@ pub extern "C" fn asan_track(addr: *const c_void, len: usize) {
 }
 
 #[no_mangle]
-pub extern "C" fn asan_untrack(addr: *const c_void) {
+/// # Safety
+pub unsafe extern "C" fn asan_untrack(addr: *const c_void) {
     trace!("untrack - addr: {:p}", addr);
     FRONTEND
         .lock()
@@ -150,7 +191,8 @@ pub fn expect_panic() {
 }
 
 #[no_mangle]
-pub extern "C" fn asan_panic(msg: *const c_char) -> ! {
+/// # Safety
+pub unsafe extern "C" fn asan_panic(msg: *const c_char) -> ! {
     trace!("panic - msg: {:p}", msg);
     let msg = unsafe { CStr::from_ptr(msg as *const c_char) };
     error!("{}", msg.to_str().unwrap());
@@ -162,4 +204,10 @@ pub extern "C" fn asan_panic(msg: *const c_char) -> ! {
             panic!("unexpected panic");
         }
     }
+}
+
+#[no_mangle]
+/// # Safety
+pub unsafe extern "C" fn asan_swap(enabled: bool) {
+    trace!("swap - enabled: {}", enabled);
 }

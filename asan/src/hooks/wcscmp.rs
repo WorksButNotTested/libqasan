@@ -1,5 +1,5 @@
 use {
-    crate::hooks::{asan_load, asan_panic, wchar_t},
+    crate::{asan_load, asan_panic, wchar_t},
     core::{
         cmp::Ordering,
         ffi::{c_char, c_int, c_void},
@@ -10,7 +10,6 @@ use {
 
 /// # Safety
 /// See man pages
-#[no_mangle]
 #[export_name = "patch_wcscmp"]
 pub unsafe extern "C" fn wcscmp(cs: *const wchar_t, ct: *const wchar_t) -> c_int {
     trace!("wcscmp - cs: {:p}, ct: {:p}", cs, ct);

@@ -5,6 +5,7 @@
 //! applications where the library has been statically linked.
 use {
     crate::{
+        asan_swap,
         mmap::{Mmap, MmapProt},
         symbols::{
             AtomicGuestAddr, Function, FunctionPointer, FunctionPointerError, Symbols,
@@ -144,7 +145,9 @@ impl<S: Symbols> LibcMmap<S> {
     }
 
     fn errno() -> Result<c_int, LibcMapError<S>> {
+        unsafe { asan_swap(false) };
         let errno_location = Self::get_errno_location()?;
+        unsafe { asan_swap(true) };
         let errno = unsafe { *errno_location() };
         Ok(errno)
     }
@@ -154,9 +157,10 @@ impl<S: Symbols> Mmap for LibcMmap<S> {
     type Error = LibcMapError<S>;
 
     fn map(len: usize) -> Result<LibcMmap<S>, LibcMapError<S>> {
-        let mmap = Self::get_mmap()?;
+        let fn_mmap = Self::get_mmap()?;
+        unsafe { asan_swap(false) };
         let map = unsafe {
-            mmap(
+            fn_mmap(
                 null_mut(),
                 len,
                 libc::PROT_READ | libc::PROT_WRITE,
@@ -165,6 +169,7 @@ impl<S: Symbols> Mmap for LibcMmap<S> {
                 0,
             )
         };
+        unsafe { asan_swap(true) };
         if map == libc::MAP_FAILED {
             let errno = Self::errno()?;
             Err(LibcMapError::FailedToMap(len, errno))
@@ -179,9 +184,10 @@ impl<S: Symbols> Mmap for LibcMmap<S> {
     }
 
     fn map_at(addr: GuestAddr, len: usize) -> Result<LibcMmap<S>, LibcMapError<S>> {
-        let mmap = Self::get_mmap()?;
+        let fn_mmap = Self::get_mmap()?;
+        unsafe { asan_swap(false) };
         let map = unsafe {
-            mmap(
+            fn_mmap(
                 addr as *mut c_void,
                 len,
                 libc::PROT_READ | libc::PROT_WRITE,
@@ -194,6 +200,7 @@ impl<S: Symbols> Mmap for LibcMmap<S> {
                 0,
             )
         };
+        unsafe { asan_swap(true) };
         trace!("Mapped: 0x{:x}-0x{:x}", addr, addr + len);
         if map == libc::MAP_FAILED {
             let errno = Self::errno()?;
@@ -214,8 +221,10 @@ impl<S: Symbols> Mmap for LibcMmap<S> {
             len,
             prot
         );
-        let mprotect = Self::get_mprotect()?;
-        let ret = unsafe { mprotect(addr as *mut c_void, len, c_int::from(&prot)) };
+        let fn_mprotect = Self::get_mprotect()?;
+        unsafe { asan_swap(false) };
+        let ret = unsafe { fn_mprotect(addr as *mut c_void, len, c_int::from(&prot)) };
+        unsafe { asan_swap(true) };
         if ret != 0 {
             let errno = Self::errno()?;
             Err(LibcMapError::FailedToMprotect(addr, len, prot, errno))?;
@@ -234,8 +243,10 @@ impl<S: Symbols> Mmap for LibcMmap<S> {
 
     fn huge_pages(addr: GuestAddr, len: usize) -> Result<(), Self::Error> {
         trace!("huge_pages - addr: {:#x}, len: {:#x}", addr, len);
-        let madvise = Self::get_madvise()?;
-        let ret = unsafe { madvise(addr as *mut c_void, len, MADV_HUGEPAGE) };
+        let fn_madvise = Self::get_madvise()?;
+        unsafe { asan_swap(false) };
+        let ret = unsafe { fn_madvise(addr as *mut c_void, len, MADV_HUGEPAGE) };
+        unsafe { asan_swap(true) };
         if ret != 0 {
             let errno = Self::errno()?;
             Err(LibcMapError::FailedToMadviseHugePage(addr, len, errno))?;
@@ -245,8 +256,10 @@ impl<S: Symbols> Mmap for LibcMmap<S> {
 
     fn dont_dump(addr: GuestAddr, len: usize) -> Result<(), Self::Error> {
         trace!("dont_dump - addr: {:#x}, len: {:#x}", addr, len);
-        let madvise = Self::get_madvise()?;
-        let ret = unsafe { madvise(addr as *mut c_void, len, MADV_DONTDUMP) };
+        let fn_madvise = Self::get_madvise()?;
+        unsafe { asan_swap(false) };
+        let ret = unsafe { fn_madvise(addr as *mut c_void, len, MADV_DONTDUMP) };
+        unsafe { asan_swap(true) };
         if ret != 0 {
             let errno = Self::errno()?;
             Err(LibcMapError::FailedToMadviseDontDump(addr, len, errno))?;
@@ -273,14 +286,15 @@ impl From<&MmapProt> for c_int {
 
 impl<S: Symbols> Drop for LibcMmap<S> {
     fn drop(&mut self) {
-        unsafe {
-            let munmap = Self::get_munmap().unwrap();
-            if munmap(self.addr as *mut c_void, self.len) < 0 {
-                let errno = Self::errno().unwrap();
-                panic!("Errno: {}", errno);
-            }
-            trace!("Unmapped: 0x{:x}-0x{:x}", self.addr, self.addr + self.len);
+        let fn_munmap = Self::get_munmap().unwrap();
+        unsafe { asan_swap(false) };
+        let ret = unsafe { fn_munmap(self.addr as *mut c_void, self.len) };
+        unsafe { asan_swap(true) };
+        if ret < 0 {
+            let errno = Self::errno().unwrap();
+            panic!("Errno: {}", errno);
         }
+        trace!("Unmapped: 0x{:x}-0x{:x}", self.addr, self.addr + self.len);
     }
 }
 

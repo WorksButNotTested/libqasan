@@ -1,5 +1,5 @@
 use {
-    crate::hooks::{asan_load, asan_panic, size_t},
+    crate::{asan_load, asan_panic, size_t},
     core::{
         cmp::Ordering,
         ffi::{c_char, c_int, c_void},
@@ -10,7 +10,6 @@ use {
 
 /// # Safety
 /// See man pages
-#[no_mangle]
 #[export_name = "patch_memcmp"]
 pub unsafe extern "C" fn memcmp(cx: *const c_void, ct: *const c_void, n: size_t) -> c_int {
     trace!("memcmp - cx: {:p}, ct: {:p}, n: {:#x}", cx, ct, n);

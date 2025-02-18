@@ -1,5 +1,5 @@
 use {
-    crate::hooks::{asan_alloc, asan_dealloc, asan_get_size, asan_load, asan_panic, size_t},
+    crate::{asan_alloc, asan_dealloc, asan_get_size, asan_load, asan_panic, size_t},
     core::{
         ffi::{c_char, c_void},
         ptr::{copy_nonoverlapping, null_mut},
@@ -9,7 +9,7 @@ use {
 
 /// # Safety
 /// See man pages
-#[no_mangle]
+#[cfg_attr(not(feature = "test"), no_mangle)]
 #[cfg_attr(feature = "test", export_name = "patch_reallocarray")]
 pub unsafe extern "C" fn reallocarray(
     ptr: *mut c_void,
