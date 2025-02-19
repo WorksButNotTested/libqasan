@@ -3,6 +3,31 @@ name = "runner"
 version = "0.1.0"
 edition = "2021"
 
+[[bin]]
+name = "runner-arm"
+path = "src/arm.rs"
+required-features = ["arm"]
+
+[[bin]]
+name = "runner-x86_64"
+path = "src/x86_64.rs"
+required-features = ["x86_64"]
+
+[[bin]]
+name = "runner-i386"
+path = "src/i386.rs"
+required-features = ["i386"]
+
+[[bin]]
+name = "runner-aarch64"
+path = "src/aarch64.rs"
+required-features = ["aarch64"]
+
+[[bin]]
+name = "runner-ppc"
+path = "src/ppc.rs"
+required-features = ["ppc"]
+
 [features]
 default = ["std"]
 std = []

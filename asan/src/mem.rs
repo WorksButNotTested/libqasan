@@ -1,10 +1,10 @@
-use {
-    crate::allocator::backend::{dlmalloc::DlmallocBackend, GlobalAllocator},
-    core::{
-        cmp::Ordering,
-        slice::{from_raw_parts, from_raw_parts_mut},
-    },
+use core::{
+    cmp::Ordering,
+    slice::{from_raw_parts, from_raw_parts_mut},
 };
+
+#[cfg(feature = "dlmalloc")]
+use crate::allocator::backend::{dlmalloc::DlmallocBackend, GlobalAllocator};
 
 #[cfg(all(feature = "linux", not(feature = "libc")))]
 type Mmap = crate::mmap::linux::LinuxMmap;
@@ -17,8 +17,17 @@ type Mmap = crate::mmap::libc::LibcMmap<
 const PAGE_SIZE: usize = 4096;
 
 #[global_allocator]
+#[cfg(all(feature = "dlmalloc", not(feature = "mimalloc")))]
 static GLOBAL_ALLOCATOR: GlobalAllocator<DlmallocBackend<Mmap>> =
     GlobalAllocator::new(DlmallocBackend::new(PAGE_SIZE));
+
+#[global_allocator]
+#[cfg(all(feature = "dlmalloc", feature = "mimalloc"))]
+static GLOBAL_ALLOCATOR: baby_mimalloc::MimallocMutexWrapper<
+    GlobalAllocator<DlmallocBackend<Mmap>>,
+> = baby_mimalloc::MimallocMutexWrapper::with_os_allocator(GlobalAllocator::new(
+    DlmallocBackend::new(PAGE_SIZE),
+));
 
 #[no_mangle]
 pub unsafe extern "C" fn memmove(dest: *mut u8, src: *const u8, count: usize) {

@@ -1,7 +1,7 @@
 ################################################################################
-# LIBQASAN                                                                     #
+# LIBRASAN                                                                     #
 ################################################################################
-FROM ubuntu:24.04 AS libqasan
+FROM ubuntu:24.04 AS librasan
 ARG http_proxy
 ARG https_proxy
 
@@ -45,9 +45,6 @@ RUN rustup target add powerpc-unknown-linux-gnu --toolchain nightly
 
 # binstall
 RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-
-# cargo-make
-RUN cargo binstall cargo-make
 
 # cargo-fuzz
 RUN cargo binstall -y cargo-fuzz

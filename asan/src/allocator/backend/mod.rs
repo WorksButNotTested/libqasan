@@ -13,12 +13,16 @@ use {crate::GuestAddr, alloc::fmt::Debug, core::alloc::GlobalAlloc, spin::Mutex}
 #[cfg(feature = "dlmalloc")]
 pub mod dlmalloc;
 
+#[cfg(feature = "mimalloc")]
+pub mod mimalloc;
+
 pub trait AllocatorBackend: Sized + Debug + Send {
     type Error: Debug;
     fn alloc(&mut self, len: usize, align: usize) -> Result<GuestAddr, Self::Error>;
     fn dealloc(&mut self, addr: GuestAddr, len: usize, align: usize) -> Result<(), Self::Error>;
 }
 
+#[derive(Debug)]
 pub struct GlobalAllocator<A: AllocatorBackend> {
     backend: Mutex<A>,
 }

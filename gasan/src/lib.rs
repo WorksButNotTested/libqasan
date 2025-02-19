@@ -4,7 +4,7 @@ extern crate alloc;
 use {
     asan::{
         allocator::{
-            backend::dlmalloc::DlmallocBackend,
+            backend::{dlmalloc::DlmallocBackend, mimalloc::MimallocBackend, GlobalAllocator},
             frontend::{default::DefaultFrontend, AllocatorFrontend},
         },
         logger::libc::LibcLogger,
@@ -32,7 +32,7 @@ type Syms = DlSymSymbols<LookupTypeNext>;
 
 type GasanMmap = LibcMmap<Syms>;
 
-type GasanBackend = DlmallocBackend<GasanMmap>;
+type GasanBackend = MimallocBackend<GlobalAllocator<DlmallocBackend<GasanMmap>>>;
 
 pub type GasanFrontend =
     DefaultFrontend<GasanBackend, GuestShadow<GasanMmap, DefaultShadowLayout>, GuestTracking>;
@@ -44,7 +44,7 @@ const PAGE_SIZE: usize = 4096;
 static FRONTEND: Lazy<Mutex<GasanFrontend>> = Lazy::new(|| {
     LibcLogger::initialize::<GasanSyms>(Level::Trace);
     info!("init");
-    let backend = GasanBackend::new(PAGE_SIZE);
+    let backend = GasanBackend::new(GlobalAllocator::new(DlmallocBackend::new(PAGE_SIZE)));
     let shadow = GuestShadow::<GasanMmap, DefaultShadowLayout>::new().unwrap();
     let tracking = GuestTracking::new().unwrap();
     let frontend = GasanFrontend::new(

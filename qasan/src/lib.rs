@@ -4,7 +4,7 @@ extern crate alloc;
 use {
     asan::{
         allocator::{
-            backend::dlmalloc::DlmallocBackend,
+            backend::{dlmalloc::DlmallocBackend, mimalloc::MimallocBackend, GlobalAllocator},
             frontend::{default::DefaultFrontend, AllocatorFrontend},
         },
         host::{libc::LibcHost, Host},
@@ -29,7 +29,7 @@ type Syms = DlSymSymbols<LookupTypeNext>;
 
 type QasanMmap = LibcMmap<Syms>;
 
-type QasanBackend = DlmallocBackend<QasanMmap>;
+type QasanBackend = MimallocBackend<GlobalAllocator<DlmallocBackend<QasanMmap>>>;
 
 type QasanHost = LibcHost<Syms>;
 
@@ -42,7 +42,7 @@ const PAGE_SIZE: usize = 4096;
 
 static FRONTEND: Lazy<Mutex<QasanFrontend>> = Lazy::new(|| {
     LibcLogger::initialize::<QasanSyms>(Level::Info);
-    let backend = QasanBackend::new(PAGE_SIZE);
+    let backend = QasanBackend::new(GlobalAllocator::new(DlmallocBackend::new(PAGE_SIZE)));
     let shadow = HostShadow::<QasanHost>::new().unwrap();
     let tracking = HostTracking::<QasanHost>::new().unwrap();
     let frontend = QasanFrontend::new(

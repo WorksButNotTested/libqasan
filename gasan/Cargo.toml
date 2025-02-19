@@ -16,6 +16,7 @@ asan = { path = "../asan", default-features = false, features = [
   "guest",
   "hooks",
   "libc",
+  "mimalloc",
   "tracking",
 ] }
 ctor = { version = "0.3.0", default-features = false }

@@ -123,6 +123,7 @@ checksum = "825297538d77367557b912770ca3083f778a196054b3ee63b22673c4a3cae0a5"
 name = "asan"
 version = "0.1.0"
 dependencies = [
+ "baby-mimalloc",
  "bitflags",
  "cc",
  "dlmalloc",
@@ -144,6 +145,15 @@ name = "autocfg"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ace50bade8e6234aa140d9a2f552bbee1db4d353f69b8217bc503490fc1a9f26"
+
+[[package]]
+name = "baby-mimalloc"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "88ed2b00c57c2899f23c8dbf1d30c3eb4fde5e98dd113e278d7677b4c8d290bf"
+dependencies = [
+ "spin",
+]
 
 [[package]]
 name = "backtrace"
@@ -2779,7 +2789,6 @@ version = "0.1.0"
 dependencies = [
  "asan",
  "log",
- "rustix",
  "spin",
 ]
 

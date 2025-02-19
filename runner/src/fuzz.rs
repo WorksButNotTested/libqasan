@@ -62,7 +62,7 @@ pub struct FuzzerOptions {
     pub args: Vec<String>,
 }
 
-fn main() {
+pub fn fuzz() {
     env_logger::init();
     let mut options = FuzzerOptions::parse();
 

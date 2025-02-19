@@ -12,6 +12,7 @@ build_fuzz:
     +nightly \
     build \
     --package fuzz \
+    --target x86_64-unknown-linux-gnu \
     --profile {{ PROFILE }} \
     --target-dir {{ TARGET_DIR }}
 
@@ -23,6 +24,7 @@ fix_fuzz:
     +nightly \
     fix \
     --package fuzz \
+    --target x86_64-unknown-linux-gnu \
     --profile {{ PROFILE }} \
     --target-dir {{ TARGET_DIR }} \
     --allow-dirty
@@ -35,10 +37,12 @@ run_fuzz:
     +nightly \
     fuzz \
     run \
+    --target x86_64-unknown-linux-gnu \
     --sanitizer none \
     {{ FUZZ_MODE_FLAG }} \
     ${HARNESS} \
     -- \
+    -rss_limit_mb=8192 \
     {{ FUZZ_JOBS }}
 
 [unix]

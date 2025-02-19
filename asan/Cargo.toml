@@ -14,6 +14,7 @@ default = [
   "host",
   "libc",
   "linux",
+  "mimalloc",
   "test",
   "tracking",
 ]
@@ -23,10 +24,14 @@ hooks = []
 host = ["dep:syscalls"]
 libc = ["dep:libc"]
 linux = ["dep:rustix"]
+mimalloc = ["dep:baby-mimalloc"]
 test = []
 tracking = []
 
 [dependencies]
+baby-mimalloc = { version = "0.2.1", default-features = false, features = [
+  "spin_mutex",
+], optional = true }
 bitflags = { version = "2.8.0", default-features = false }
 dlmalloc = { version = "0.2.7", default-features = false, optional = true }
 itertools = { version = "0.14.0", default-features = false }
